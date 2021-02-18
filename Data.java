@@ -29,11 +29,59 @@ class Task {
     public String getSize() {
         return size;
     }
-
     
     public void incrementRunTime(String startTime, String stopTime) {
     private String taskName;
     String size;
     private Map<String, Integer> timeSpentOnTask;
     private List<String> descriptions;
+}
+
+class Summary {
+    public Summary(
+                int summaryType, String[] summaryArgs) {
+        totalTime = 0;
+        this.summaryArgs = summaryArgs;
+        this.summaryType = summaryType;
+        totalMinTime = Integer.MAX_VALUE;
+    }
+
+    public void GenerateSummary() {
+        //
+    }
+    
+    private void PrintAllSummary() {
+        if(taskList.containsKey("")) {
+            //PrintSizeSummary("");
+        }
+        if(taskList.containsKey("S")) {
+            //PrintSizeSummary("S");
+        }
+        if(taskList.containsKey("M")) {
+            //PrintSizeSummary("M");
+        }
+        if(taskList.containsKey("L")) {
+            //PrintSizeSummary("L");
+        }
+        if(taskList.containsKey("XL")) {
+            //PrintSizeSummary("XL");
+        }
+        //PrintStatisticsForAll();
+    }
+
+    private String GenerateTimeStringFromSeconds(int timeInSeconds) {
+        int hours = timeInSeconds/3600;
+        int minutes = (timeInSeconds % 3600)/60;
+        int seconds = (timeInSeconds % 3600)%60;
+
+        return String.format("%d:%02d:%02d",hours,minutes,seconds);
+    }
+
+    private int summaryType;
+    private String[] summaryArgs;
+    private HashMap<String,List<Task>> taskList;
+    private int totalTime;
+    private int totalNumTasks;
+    private int totalMinTime;
+    private int totalMaxTime;
 }
