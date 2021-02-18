@@ -47,10 +47,11 @@ class Summary {
     }
 
     public void GenerateSummary() {
-        //
+        // TODO: Generate summary of task
     }
     
     private void PrintAllSummary() {
+        // Prints the size of the task
         if(taskList.containsKey("")) {
             //PrintSizeSummary("");
         }
@@ -70,6 +71,7 @@ class Summary {
     }
 
     private String GenerateTimeStringFromSeconds(int timeInSeconds) {
+        // Converts time from seconds into a different time value
         int hours = timeInSeconds/3600;
         int minutes = (timeInSeconds % 3600)/60;
         int seconds = (timeInSeconds % 3600)%60;
