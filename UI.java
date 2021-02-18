@@ -1,5 +1,6 @@
 
 // Main UI for the Timer App
+public class UI{
 
 // Timer Display Screen
 // Timers are sectioned boxes in a list. Each box has a variety of labels and buttons.
@@ -14,3 +15,5 @@
 
 // Statistics Screen 
 // Four buttons to show stats by size? A search bar to find a specific timer? A log? Settings?
+
+}
