@@ -47,11 +47,25 @@ class Task {
     public String getSize() {
         return size;
     }
+
+    public void setStartTime() {
+        this.lastStartTime = LocalDateTime.now();
+    }
+
+    public LocalDateTime getLastStartTime() {
+        return lastStartTime;
+    }
     
+    public int getTimeSpentInSeconds() {
+        return timeSpentOnTask.get("hours")*3600 +
+            timeSpentOnTask.get("minutes")*60 +
+            timeSpentOnTask.get("seconds");
+    }
+
     private String taskName;
-    String size;
-    boolean isRunning;
-    LocalDateTime lastStartTime;
+    private String size;
+    private boolean isRunning;
+    private LocalDateTime lastStartTime;
     private Map<String, Integer> timeSpentOnTask;
     private List<String> descriptions;
 }
