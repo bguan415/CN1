@@ -1,3 +1,4 @@
+import java.sql.Date;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -7,19 +8,36 @@ import java.util.List;
 import java.util.Map;
 
 public class Data {
+    
+    public Data() {
+        taskList = new ArrayList<>();
+        for(List<Task> sizeList : taskList) {
+            sizeList = new ArrayList<>();
+        }
+    }
 
-
+    private List<List<Task>> taskList;
 }
 
 class Task {
-    public Task(String taskName) {
+    public Task(String taskName, String size, boolean startUponCreation) {
         this.taskName = taskName;
-        size = "";
+        this.size = size;
+        isRunning = startUponCreation;
+        if(startUponCreation) lastStartTime = LocalDateTime.now();
         descriptions = new ArrayList<>();
         timeSpentOnTask = new HashMap<String,Integer>();
         timeSpentOnTask.put("hours", 0);
         timeSpentOnTask.put("minutes", 0);
         timeSpentOnTask.put("seconds", 0);
+    }
+
+    public void setName(String name) {
+        this.taskName = name;
+    }
+
+    public String getName() {
+        return taskName;
     }
 
     public void setSize(String size) {
@@ -30,9 +48,10 @@ class Task {
         return size;
     }
     
-    public void incrementRunTime(String startTime, String stopTime) {
     private String taskName;
     String size;
+    boolean isRunning;
+    LocalDateTime lastStartTime;
     private Map<String, Integer> timeSpentOnTask;
     private List<String> descriptions;
 }
