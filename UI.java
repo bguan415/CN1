@@ -16,7 +16,7 @@ import com.codename1.components.Accordion;
 import com.codename1.io.NetworkEvent;
 
 // Main UI for the Timer App
-public class UI{
+public class UI extends Form{
 
 // Timer Display Screen
 // Timers are sectioned boxes in a list. Each box has a variety of labels and buttons.
@@ -29,7 +29,7 @@ public class UI{
 
 // At the bottom of the timer scroll screen, there are two buttons. New Timer adds a timer, Statistics opens the Statistics Screen
 
-// Statistics Screen 
+// Statistics Screen
 // Four buttons to show stats by size? A search bar to find a specific timer? A log? Settings?
 
     private Form current;
@@ -38,37 +38,12 @@ public class UI{
     private Form screen;
     private Container currentLayout;
 
-    public void init(Object context) {
-        // use two network threads instead of one
-        updateNetworkThreadCount(2);
-        
-        // Enable Toolbar on all Forms by default
-        Toolbar.setGlobalToolbar(true);
+    public UI() {
 
-        // Pro only feature
-        Log.bindCrashProtection(true);
+        setLayout(new BorderLayout());
+        //screen = new Form("Timers", bl);
 
-        addNetworkErrorListener(err -> {
-            // prevent the event from propagating
-            err.consume();
-            if(err.getError() != null) {
-                Log.e(err.getError());
-            }
-            Log.sendLogAsync();
-            Dialog.show("Connection Error", "There was a networking error in the connection to " + err.getConnectionRequest().getUrl(), "OK", null);
-        });        
-    }
-    
-    public void start() {
-        if(current != null){
-            current.show();
-            return;
-        }
-
-        bl = new BorderLayout();
-        screen = new Form("Timers", bl);
-
-        screen.add(BorderLayout.NORTH, addTask());
+        add(BorderLayout.NORTH, addTask());
 
 
         // Initialization for NewTask/Statistics buttons
@@ -80,11 +55,9 @@ public class UI{
         lower.add(newTask).
                 add(stats);
 
-        screen.setScrollable(false);
-        screen.add(BorderLayout.SOUTH, lower);
+        setScrollable(false);
+        add(BorderLayout.SOUTH, lower);
 
-        screen.show();
-        currentLayout = screen;
     }
 
     public Container addTask() {
@@ -132,15 +105,8 @@ public class UI{
         sizeButton.setText(sizes[currentSizeNum]);
     }
 
-    public void stop() {
-        current = getCurrentForm();
-        if(current instanceof Dialog) {
-            ((Dialog)current).dispose();
-            current = getCurrentForm();
-        }
-    }
-    
-    public void destroy() {
+    public void show() {
+        super.show();
     }
 
 }
