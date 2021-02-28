@@ -1,4 +1,3 @@
-
 import static com.codename1.ui.CN.*;
 import com.codename1.io.Log;
 import com.codename1.ui.*;
@@ -12,6 +11,9 @@ import com.codename1.ui.util.Resources;
 import com.codename1.ui.util.UITimer;
 import java.io.IOException;
 import com.codename1.components.Accordion;
+import com.codename1.ui.events.ActionEvent;
+import com.codename1.ui.events.ActionListener;
+
 
 import com.codename1.io.NetworkEvent;
 
@@ -41,10 +43,12 @@ public class UI extends Form{
     public UI() {
 
         setLayout(new BorderLayout());
-        //screen = new Form("Timers", bl);
 
-        add(BorderLayout.NORTH, addTask());
+        //Container taskEntry = new Container(new BoxLayout(BoxLayout.X_AXIS));
 
+        Container taskList = new Container(new BoxLayout(BoxLayout.Y_AXIS));
+
+        taskList.add(addTask());
 
         // Initialization for NewTask/Statistics buttons
         Container lower = new Container(new GridLayout(1,2));
@@ -52,11 +56,20 @@ public class UI extends Form{
         Button stats = new Button("Statistics");
         newTask.getStyle().setAlignment(CENTER);
         stats.getStyle().setAlignment(CENTER);
+
+        // Listener for New Task button
+        newTask.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                taskList.add(addTask());
+            }
+        });
+
         lower.add(newTask).
                 add(stats);
 
         setScrollable(false);
         add(BorderLayout.SOUTH, lower);
+        add(BorderLayout.NORTH, taskList);
 
     }
 
