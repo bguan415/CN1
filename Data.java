@@ -1,122 +1,253 @@
-import java.sql.Date;
+package net.sqlitetutorial;
+import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class Data {
-    
-    public Data() {
-        taskList = new ArrayList<>();
-        for(List<Task> sizeList : taskList) {
-            sizeList = new ArrayList<>();
+
+    /**
+     * Connect to the test.db database
+     *
+     * @return the Connection object
+     */
+    private Connection connect() {
+        // SQLite connection string
+        String url = "jdbc:sqlite:C://sqlite/db/test.db";
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(url);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
         }
+        return conn;
     }
+    public void createTable() {
+        Connection c = null;
+        Statement stmt = null;
 
-    private List<List<Task>> taskList;
-}
+        try {
 
-class Task {
-    public Task(String taskName, String size, boolean startUponCreation) {
-        this.taskName = taskName;
-        this.size = size;
-        isRunning = startUponCreation;
-        if(startUponCreation) lastStartTime = LocalDateTime.now();
-        descriptions = new ArrayList<>();
-        timeSpentOnTask = new HashMap<String,Integer>();
-        timeSpentOnTask.put("hours", 0);
-        timeSpentOnTask.put("minutes", 0);
-        timeSpentOnTask.put("seconds", 0);
-    }
+            Class.forName("org.sqlite.JDBC");
 
-    public void setName(String name) {
-        this.taskName = name;
-    }
+            c = this.connect();
 
-    public String getName() {
-        return taskName;
-    }
+            System.out.println("Database Opened...\n");
 
-    public void setSize(String size) {
-        this.size = size;
-    }
+            stmt = c.createStatement();
 
-    public String getSize() {
-        return size;
-    }
+            String sql = "CREATE TABLE IF NOT EXISTS tasks " +
+            "(name TEXT PRIMARY KEY NOT NULL," +
+            " size TEXT NOT NULL, " +
+            " runTime INTEGER, " +
+            " startTime TEXT," +
+            " description TEXT)";
 
-    public void setStartTime() {
-        this.lastStartTime = LocalDateTime.now();
-    }
+            stmt.executeUpdate(sql);
 
-    public LocalDateTime getLastStartTime() {
-        return lastStartTime;
-    }
-    
-    public int getTimeSpentInSeconds() {
-        return timeSpentOnTask.get("hours")*3600 +
-            timeSpentOnTask.get("minutes")*60 +
-            timeSpentOnTask.get("seconds");
-    }
+            stmt.close();
 
-    private String taskName;
-    private String size;
-    private boolean isRunning;
-    private LocalDateTime lastStartTime;
-    private Map<String, Integer> timeSpentOnTask;
-    private List<String> descriptions;
-}
+            c.close();
 
-class Summary {
-    public Summary(
-                int summaryType, String[] summaryArgs) {
-        totalTime = 0;
-        this.summaryArgs = summaryArgs;
-        this.summaryType = summaryType;
-        totalMinTime = Integer.MAX_VALUE;
-    }
+        }
 
-    public void GenerateSummary() {
-        // TODO: Generate summary of task
+        catch (Exception e) { 
+
+            System.err.println(e.getClass().getName() + ": " + e.getMessage());
+            System.exit(0);
+
+        }
+
     }
     
-    private void PrintAllSummary() {
-        // Prints the size of the task
-        if(taskList.containsKey("")) {
-            //PrintSizeSummary("");
+    public void insert(String name, String size) {
+        String sql = "INSERT INTO tasks(name,size,runTime) VALUES(?,?,?) ";
+        try (Connection conn = this.connect();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, name);
+            pstmt.setString(2, size);
+            pstmt.setInt(3, 0);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
         }
-        if(taskList.containsKey("S")) {
-            //PrintSizeSummary("S");
-        }
-        if(taskList.containsKey("M")) {
-            //PrintSizeSummary("M");
-        }
-        if(taskList.containsKey("L")) {
-            //PrintSizeSummary("L");
-        }
-        if(taskList.containsKey("XL")) {
-            //PrintSizeSummary("XL");
-        }
-        //PrintStatisticsForAll();
     }
 
-    private String GenerateTimeStringFromSeconds(int timeInSeconds) {
-        // Converts time from seconds into a different time value
-        int hours = timeInSeconds/3600;
-        int minutes = (timeInSeconds % 3600)/60;
-        int seconds = (timeInSeconds % 3600)%60;
-
-        return String.format("%d:%02d:%02d",hours,minutes,seconds);
+    public ResultSet GetTask(String taskName) {
+        Connection c = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        String sql = "SELECT DISTINCT * " +
+            "FROM tasks " +
+            "WHERE name = "+taskName;
+        try {
+            c = this.connect();
+            stmt = c.createStatement();
+            rs = stmt.executeQuery(sql);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return rs;
     }
 
-    private int summaryType;
-    private String[] summaryArgs;
-    private HashMap<String,List<Task>> taskList;
-    private int totalTime;
-    private int totalNumTasks;
-    private int totalMinTime;
-    private int totalMaxTime;
+    public ResultSet GetSearchResultsByName(String searchInput) {
+        Connection c = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        String sql = "SELECT * " +
+            "FROM tasks " +
+            "WHERE name LIKE '%"+searchInput+"%'" + 
+            "ORDER BY LENGTH(name)";
+        try {
+            c = this.connect();
+            stmt = c.createStatement();
+            rs = stmt.executeQuery(sql);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return rs;
+    }
+
+    public ResultSet GetSearchResultsBySize(String searchInput) {
+        Connection c = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        String sql = "SELECT * " +
+            "FROM tasks " +
+            //"WHERE size = "+ searchInput;
+            "WHERE instr(size, '"+searchInput+"') > 0";
+            //ORDER BY name
+        try {
+            c = this.connect();
+            stmt = c.createStatement();
+            rs = stmt.executeQuery(sql);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return rs;
+    }
+
+    public int GetSizeClassSize(String searchInput) {
+        Connection c = null;
+        Statement stmt = null;
+        int sizeClassCount = 0;
+        String sql = "SELECT Count(*) " +
+            "FROM tasks " +
+            "WHERE instr(size, '"+searchInput+"') > 0";
+            //ORDER BY 
+        try {
+            c = this.connect();
+            stmt = c.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            sizeClassCount = rs.getInt(1);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return sizeClassCount;
+    }
+
+    public boolean isGivenTaskRunning(String taskName) {
+        boolean isGivenTaskRunning = isAnyTaskRunning();
+        try {
+            ResultSet rs = GetTask(taskName);
+            isGivenTaskRunning = !rs.getString("startTime").isEmpty();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return isGivenTaskRunning;
+    }
+
+    public boolean isAnyTaskRunning() {
+        return !runningTask.isEmpty();
+    }
+
+    public void RenameTask(String oldTaskName, String newTaskName) {
+        UpdateTextColumnOfTask(oldTaskName, "name", newTaskName);
+    }
+
+    public void ResizeTask(String taskName, String newSize) {
+        UpdateTextColumnOfTask(taskName, "size", newSize);
+    }
+
+    public void SetTaskDescription(String taskName, String description) {
+        UpdateTextColumnOfTask(taskName, "description", description);
+    }
+
+    public void StartTask(String taskName) {
+        LocalDateTime startTimeLDT = LocalDateTime.now();
+        DateTimeFormatter dtf = 
+            DateTimeFormatter.ofPattern("yyyy-MM-dd,HH:mm:ss"); 
+
+        UpdateTextColumnOfTask(taskName, "startTime", dtf.format(startTimeLDT));
+        runningTask = taskName;
+    }
+
+    public void StartTask(String taskName, String startTime) {
+        UpdateTextColumnOfTask(taskName, "startTime", startTime);
+        runningTask = taskName;
+    }
+
+    public LocalDateTime GetStartTimeObject(String taskName, DateTimeFormatter dtf) {
+        ResultSet rs = null;
+
+        LocalDateTime startTimeLDT = LocalDateTime.now();
+        String sql = "SELECT startTime " +
+            "FROM tasks " +
+            "WHERE name = ?";
+
+        try (Connection conn = this.connect(); 
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, taskName);
+            rs = pstmt.executeQuery();
+            startTimeLDT = LocalDateTime.parse(rs.getString("startTime"),dtf);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return startTimeLDT;
+    }
+
+    public void IncrementRuntime(String taskName, int timeDifference) {
+        String sql = "UPDATE tasks SET runTime = runTime + ? " +
+         "WHERE name = ?";
+        
+        try (Connection conn = this.connect(); 
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, timeDifference);
+            pstmt.setString(2, taskName);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void DeleteStartTime(String taskName) {
+        String sql = "UPDATE tasks SET startTime = NULL " +
+         "WHERE name = ?";
+        
+        try (Connection conn = this.connect(); 
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, taskName);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        runningTask = "";
+    }
+
+    public void UpdateTextColumnOfTask(String taskName, String column, String newVal) {
+        String sql = "UPDATE tasks SET "+column+" = ? " +
+         "WHERE name = ?";
+
+        try (Connection conn = this.connect(); 
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, newVal);
+            pstmt.setString(2, taskName);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    private String runningTask;
+        
 }

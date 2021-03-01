@@ -1,86 +1,89 @@
+package net.sqlitetutorial;
+
+import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class Logic {
 
+    public Logic() {
+        sqler = new Data();
+        sqler.createTable();
+    }
 
+    public void CreateNewTask(String taskName, String size) {
+        sqler.insert(taskName, size);
+    }
 
-    public List<String> GetSearchResultsByName(String searchInput) {
-        List<String> searchResults = new ArrayList<>();
+    public void SizeSummaryStatistics(String size) {
+        int numTasks = sqler.GetSizeClassSize(size);
+        if(numTasks == 0) return;
 
-        for(List<Task> sizeList : taskList) {
-            for(Task task : sizeList) {
-                if(task.getName().toLowerCase().contains(searchInput.toLowerCase())) {
-                    searchResults.add(task.getName());
+        int totalTime = 0;
+        int meanTime = 0;
+        int maxTime = 0;
+        int minTime = 0;
+
+        ResultSet rs; 
+        try {
+            rs = sqler.GetSearchResultsBySize(size);
+            maxTime = rs.getInt("runTime");
+            minTime = maxTime;
+            
+            while (rs.next()) {
+                int taskTimeSeconds = rs.getInt("runTime");
+                totalTime += taskTimeSeconds;
+                if(taskTimeSeconds < minTime) {
+                    minTime = taskTimeSeconds;
+                }
+                if(taskTimeSeconds > maxTime) {
+                    maxTime = taskTimeSeconds;
                 }
             }
-        }
-
-        return searchResults;
-    }
-
-    public List<Task> GetSearchResultsBySize(String searchInput) {
-        return taskList.get(StringToIndex(searchInput));
-    }
-
-    public void CreateNewTask(String taskName, String size, boolean startNow) {
-        taskList.get(StringToIndex(size)).add(new Task(taskName, size, startNow));
-    }
-
-    public void StopRunningTask(String taskName) {
-        for(List<Task> sizeList : taskList) {
-            for(Task task : sizeList) {
-                if(task.getName().equals(taskName)) {
-                    //
-                }
-            }
+    
+            meanTime = totalTime/numTasks;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
         }
     }
 
-    public String getRunningTaskTimeToNow(String taskName) {
-        Task runningTask;
-        for(List<Task> sizeList : taskList) {
-            for(Task task : sizeList) {
-                if(task.getName().equals(taskName)) {
-                    runningTask = task;
-                }
-            }
-        }
+    public void StartTask(String taskName) {
+        LocalDateTime startTimeLDT = LocalDateTime.now();
+        DateTimeFormatter dtf = 
+            DateTimeFormatter.ofPattern("yyyy-MM-dd,HH:mm:ss"); 
 
+        sqler.StartTask(taskName, dtf.format(startTimeLDT));
+    }
+
+    public void StopTask(String taskName) {
+        DateTimeFormatter dtf = 
+        DateTimeFormatter.ofPattern("yyyy-MM-dd,HH:mm:ss"); 
+        LocalDateTime startTimeLDT = sqler.GetStartTimeObject(taskName, dtf);
         LocalDateTime stopTimeLDT = LocalDateTime.now();
-        Duration duration = Duration.between(stopTimeLDT, runningTask.getLastStartTime());
-        int difference = (int)Math.abs(duration.toSeconds());
-        int totalTime = runningTask.getTimeSpentInSeconds() + difference;
+        
+        Duration duration = Duration.between(stopTimeLDT, startTimeLDT);
+        int timeDifference = (int)Math.abs(duration.toSeconds());
 
-        return GenerateTimeStringFromSeconds(totalTime);
+        sqler.IncrementRuntime(taskName, timeDifference);
+
+        sqler.DeleteStartTime(taskName);
     }
 
-    public void ChangeTaskSize(String taskName, String newSize) {
-        for(List<Task> sizeList : taskList) {
-            for(Task task : sizeList) {
-                if(task.getName().equals(taskName)) {
-                    task.setSize(newSize);
-                    taskList.get(StringToIndex(newSize)).add(task);
-                    sizeList.remove(task);
-                    break;
-                }
-            }
-        }
+    public int CountSizeClass(String size) {
+        return sqler.GetSizeClassSize(size);
     }
 
-    private int StringToIndex(String size) {
-        switch(size) {
-            case "S": return 0;
-            case "M": return 1;
-            case "L": return 2;
-            case "XL": return 3;
-            default: return 0;
-        }
+    public void RenameTask(String oldTaskName, String newTaskName) {
+        sqler.RenameTask(oldTaskName, newTaskName);
+    }
+
+    public void ResizeTask(String taskName, String newSize) {
+        sqler.ResizeTask(taskName, newSize);
+    }
+
+    public void SetTaskDescription(String taskName, String description) {
+        sqler.SetTaskDescription(taskName, description);
     }
 
     private String GenerateTimeStringFromSeconds(int timeInSeconds) {
@@ -91,7 +94,5 @@ public class Logic {
         return String.format("%d:%02d:%02d",hours,minutes,seconds);
     }
 
-    //To be moved to and handled by Data Class
-    Size sizeType;
-    private List<List<Task>> taskList;
+    private Data sqler;
 }
