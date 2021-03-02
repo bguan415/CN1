@@ -1,4 +1,4 @@
-package net.sqlitetutorial;
+//package org.ecs160.CN1;
 import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -14,7 +14,7 @@ public class Data {
      */
     private Connection connect() {
         // SQLite connection string
-        String url = "jdbc:sqlite:C://sqlite/db/test.db";
+        String url = "jdbc:sqlite:src/org/ecs160/CN1/db/test.db";
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(url);
