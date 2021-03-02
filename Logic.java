@@ -1,4 +1,4 @@
-package net.sqlitetutorial;
+package org.ecs160.a2;
 
 import java.sql.*;
 import java.time.Duration;

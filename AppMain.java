@@ -1,3 +1,4 @@
+package org.ecs160.a2;
 import static com.codename1.ui.CN.*;
 import com.codename1.ui.Display;
 import com.codename1.ui.Form;
@@ -48,6 +49,7 @@ public class AppMain {
             current.show();
             return;
         }
+        Logic logic = new Logic();
 
         UI UIForm = new UI();
 
