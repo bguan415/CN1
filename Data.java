@@ -1,4 +1,4 @@
-//package org.ecs160.CN1;
+package org.ecs160.a2;
 import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -7,14 +7,9 @@ import java.util.concurrent.TimeUnit;
 
 public class Data {
 
-    /**
-     * Connect to the test.db database
-     *
-     * @return the Connection object
-     */
     private Connection connect() {
         // SQLite connection string
-        String url = "jdbc:sqlite:src/org/ecs160/CN1/db/test.db";
+        String url = "jdbc:sqlite:src/org/ecs160/a2/db/test.db";
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(url);
@@ -32,9 +27,7 @@ public class Data {
             Class.forName("org.sqlite.JDBC");
 
             c = this.connect();
-
             System.out.println("Database Opened...\n");
-
             stmt = c.createStatement();
 
             String sql = "CREATE TABLE IF NOT EXISTS tasks " +
@@ -45,9 +38,7 @@ public class Data {
             " description TEXT)";
 
             stmt.executeUpdate(sql);
-
             stmt.close();
-
             c.close();
 
         }
@@ -81,6 +72,22 @@ public class Data {
         String sql = "SELECT DISTINCT * " +
             "FROM tasks " +
             "WHERE name = "+taskName;
+        try {
+            c = this.connect();
+            stmt = c.createStatement();
+            rs = stmt.executeQuery(sql);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return rs;
+    }
+
+    public ResultSet GetAllTasks() {
+        Connection c = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        String sql = "SELECT * " +
+                "FROM tasks ";
         try {
             c = this.connect();
             stmt = c.createStatement();

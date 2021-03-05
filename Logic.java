@@ -1,4 +1,4 @@
-package net.sqlitetutorial;
+package org.ecs160.a2;
 
 import java.sql.*;
 import java.time.Duration;
@@ -14,6 +14,10 @@ public class Logic {
 
     public void CreateNewTask(String taskName, String size) {
         sqler.insert(taskName, size);
+    }
+
+    public ResultSet GetAllTasks() {
+        return sqler.GetAllTasks();
     }
 
     public void SizeSummaryStatistics(String size) {

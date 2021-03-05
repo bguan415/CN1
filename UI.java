@@ -1,3 +1,4 @@
+package org.ecs160.a2;
 import static com.codename1.ui.CN.*;
 import com.codename1.io.Log;
 import com.codename1.ui.*;
@@ -11,6 +12,8 @@ import com.codename1.ui.table.TableLayout;
 import com.codename1.ui.util.Resources;
 import com.codename1.ui.util.UITimer;
 import java.io.IOException;
+import java.sql.*;
+
 import com.codename1.components.Accordion;
 import com.codename1.ui.events.ActionEvent;
 import com.codename1.ui.events.ActionListener;
@@ -29,7 +32,7 @@ import com.codename1.ui.FontImage;
 import com.codename1.io.NetworkEvent;
 
 // Main UI for the Timer App
-public class UI extends Form{
+public class UI extends Form {
 
 // Timer Display Screen
 // Timers are sectioned boxes in a list. Each box has a variety of labels and buttons.
@@ -53,6 +56,8 @@ public class UI extends Form{
 
     public UI() {
 
+        logic = new Logic();
+
         setTitle("Task List");
         setLayout(new BorderLayout());
 
@@ -62,9 +67,8 @@ public class UI extends Form{
         taskList.getAllStyles().setFgColor(0x6b7e8c);
         taskList.getAllStyles().setBgTransparency(255);
         taskList.getAllStyles().setBgColor(0x37454f);
-        taskList.getStyle().setPadding(20,20,20,20);
+        taskList.getStyle().setPadding(20, 20, 20, 20);
         taskList.getAllStyles().setBorder(Border.createLineBorder(6, 0x37454f));
-
 
 
         Container blankSpace = new Container(new BoxLayout(BoxLayout.Y_AXIS));
@@ -75,7 +79,7 @@ public class UI extends Form{
         taskList.add(addTask());
 
         // Initialization for NewTask/Statistics buttons
-        Container lower = new Container(new GridLayout(1,2));
+        Container lower = new Container(new GridLayout(1, 2));
         Button newTask = new Button("New Task");
         newTask.getAllStyles().setFgColor(0x2e3030);
         newTask.getAllStyles().setBorder(Border.createLineBorder(6, 0x435059));
@@ -97,7 +101,6 @@ public class UI extends Form{
 
             }
         });
-
 
 
         stats.addActionListener(new ActionListener() {
@@ -138,22 +141,22 @@ public class UI extends Form{
         FontImage searchIcon = FontImage.createMaterial(FontImage.MATERIAL_SEARCH, s);
         searchField.addDataChangeListener((i1, i2) -> { // <2>
             String t = searchField.getText();
-            if(t.length() < 1) {
-                for(Component cmp : hi.getContentPane()) {
+            if (t.length() < 1) {
+                for (Component cmp : hi.getContentPane()) {
                     cmp.setHidden(false);
                     cmp.setVisible(true);
                 }
             } else {
                 t = t.toLowerCase();
-                for(Component cmp : hi.getContentPane()) {
+                for (Component cmp : hi.getContentPane()) {
                     String val = null;
-                    if(cmp instanceof Label) {
-                        val = ((Label)cmp).getText();
+                    if (cmp instanceof Label) {
+                        val = ((Label) cmp).getText();
                     } else {
-                        if(cmp instanceof TextArea) {
-                            val = ((TextArea)cmp).getText();
+                        if (cmp instanceof TextArea) {
+                            val = ((TextArea) cmp).getText();
                         } else {
-                            val = (String)cmp.getPropertyValue("text");
+                            val = (String) cmp.getPropertyValue("text");
                         }
                     }
                     boolean show = val != null && val.toLowerCase().indexOf(t) > -1;
@@ -167,16 +170,27 @@ public class UI extends Form{
             searchField.startEditingAsync(); // <4>
         });
 
+
+        try {
+            ResultSet rs = logic.GetAllTasks();
+            while (rs.next()) {
+                String name = rs.getString("name");
+                hi.add(name);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        /*
         hi.add("Task A").
                 add("Task B").
                 add("Task C").
                 add("Task D").
                 add("Task E").
                 add("Task F").
-                add("Task G");
+                add("Task G");*/
 
 
-        Container lower = new Container(new GridLayout(1,1));
+        Container lower = new Container(new GridLayout(1, 1));
         Button newTask = new Button("Task List");
         newTask.getAllStyles().setFgColor(0x2e3030);
         newTask.getAllStyles().setBorder(Border.createLineBorder(6, 0x435059));
@@ -208,7 +222,7 @@ public class UI extends Form{
 
     public Container addTask() {
         // Initialization for task viewer
-        TableLayout tl = new TableLayout(1,4);
+        TableLayout tl = new TableLayout(1, 4);
         Container upper = new Container(tl);
 
         Stroke borderStroke = new Stroke(2, Stroke.CAP_SQUARE, Stroke.JOIN_MITER, 1);
@@ -216,7 +230,7 @@ public class UI extends Form{
 
         upper.getStyle().setBgTransparency(255);
         upper.getStyle().setBgColor(0xc0c0c0);
-        upper.getStyle().setPadding(10,10,10,10);
+        upper.getStyle().setPadding(10, 10, 10, 10);
         upper.getStyle().setBorder(Border.createEtchedLowered());
         upper.getAllStyles().setFgColor(0x2e3030);
         upper.getUnselectedStyle().setBorder(RoundBorder.create().
@@ -227,7 +241,6 @@ public class UI extends Form{
                 stroke(borderStroke));
         upper.getAllStyles().setMarginUnit(Style.UNIT_TYPE_DIPS);
         upper.getAllStyles().setMargin(Component.BOTTOM, 1);
-
 
 
         // Initialization for size button
@@ -245,7 +258,7 @@ public class UI extends Form{
         //upper.add(tl.createConstraint().widthPercentage(60), name);
 
         Accordion accr = new Accordion();
-        TextArea ta = new TextArea(7,40);
+        TextArea ta = new TextArea(7, 40);
         accr.addContent("Task", ta);
         ta.setHint("Description");
         upper.add(tl.createConstraint().widthPercentage(60), accr);
@@ -265,16 +278,18 @@ public class UI extends Form{
 
     int currentSizeNum = 0;
 
-    public void changeSize(Button sizeButton)
-    {
+    public void changeSize(Button sizeButton) {
         currentSizeNum += 1;
         if (currentSizeNum == 5)
             currentSizeNum = 0;
-        String [] sizes = {"Size", "S", "M", "L", "XL"};
+        String[] sizes = {"Size", "S", "M", "L", "XL"};
         sizeButton.setText(sizes[currentSizeNum]);
     }
+
+    Logic logic;
 
     public void show() {
         super.show();
     }
 }
+
