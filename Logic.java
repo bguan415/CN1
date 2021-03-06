@@ -16,6 +16,10 @@ public class Logic {
         sqler.insert(taskName, size);
     }
 
+    public ResultSet GetAllTasks() {
+        return sqler.GetAllTasks();
+    }
+
     public void SizeSummaryStatistics(String size) {
         int numTasks = sqler.GetSizeClassSize(size);
         if(numTasks == 0) return;

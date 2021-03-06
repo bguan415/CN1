@@ -49,7 +49,6 @@ public class AppMain {
             current.show();
             return;
         }
-        Logic logic = new Logic();
 
         UI UIForm = new UI();
 

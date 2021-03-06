@@ -12,6 +12,8 @@ import com.codename1.ui.table.TableLayout;
 import com.codename1.ui.util.Resources;
 import com.codename1.ui.util.UITimer;
 import java.io.IOException;
+import java.sql.*;
+
 import com.codename1.components.Accordion;
 import com.codename1.ui.events.ActionEvent;
 import com.codename1.ui.events.ActionListener;
@@ -53,6 +55,8 @@ public class UI extends Form {
     private Container currentLayout;
 
     public UI() {
+
+        logic = new Logic();
 
         setTitle("Task List");
         setLayout(new BorderLayout());
@@ -166,13 +170,24 @@ public class UI extends Form {
             searchField.startEditingAsync(); // <4>
         });
 
+
+        try {
+            ResultSet rs = logic.GetAllTasks();
+            while (rs.next()) {
+                String name = rs.getString("name");
+                hi.add(name);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        /*
         hi.add("Task A").
                 add("Task B").
                 add("Task C").
                 add("Task D").
                 add("Task E").
                 add("Task F").
-                add("Task G");
+                add("Task G");*/
 
 
         Container lower = new Container(new GridLayout(1, 1));
@@ -270,6 +285,8 @@ public class UI extends Form {
         String[] sizes = {"Size", "S", "M", "L", "XL"};
         sizeButton.setText(sizes[currentSizeNum]);
     }
+
+    Logic logic;
 
     public void show() {
         super.show();
