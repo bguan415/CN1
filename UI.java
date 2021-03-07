@@ -2,6 +2,7 @@ package org.ecs160.a2;
 import static com.codename1.ui.CN.*;
 import com.codename1.io.Log;
 import com.codename1.ui.*;
+import com.codename1.ui.animations.Animation;
 import com.codename1.ui.animations.CommonTransitions;
 import com.codename1.ui.layouts.*;
 import com.codename1.ui.plaf.Border;
@@ -13,6 +14,7 @@ import com.codename1.ui.util.Resources;
 import com.codename1.ui.util.UITimer;
 import java.io.IOException;
 import java.sql.*;
+import java.util.Calendar;
 
 import com.codename1.components.Accordion;
 import com.codename1.ui.events.ActionEvent;
@@ -98,7 +100,7 @@ public class UI extends Form {
         newTask.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 taskList.add(addTask());
-
+                taskList.animateLayout(5);
             }
         });
 
@@ -117,6 +119,90 @@ public class UI extends Form {
         add(BorderLayout.NORTH, taskList);
         add(BorderLayout.CENTER, blankSpace);
 
+    }
+
+    private class TimeDisplay {
+        int seconds;
+        int minutes;
+        int hours;
+        int days;
+        public String timeStamp;
+        int lastSecond;
+
+        public TimeDisplay() {
+            seconds = 0;
+            minutes = 0;
+            hours = 0;
+            days = 0;
+            timeStamp = "00:00";
+            Calendar curTime = Calendar.getInstance();
+            lastSecond = curTime.get(Calendar.SECOND);
+        }
+
+        public void start() {
+            getComponentForm().registerAnimated((Animation) this);
+        }
+
+        public void stop() {
+            getComponentForm().deregisterAnimated((Animation) this);
+        }
+
+        public boolean animate() {
+            if (timePassed()) {
+                secondPassed();
+                return true;
+            }
+
+            return false;
+        }
+
+        private boolean timePassed() {
+            Calendar curTime = Calendar.getInstance();
+            int  curSec = curTime.get(Calendar.SECOND);
+            if (curSec != lastSecond) {
+                lastSecond = curSec;
+                return true;
+            }
+            else {return false;}
+        }
+
+        private void secondPassed() {
+            seconds++;
+            if (seconds == 60) {
+                seconds = 0;
+                minutes++;
+            }
+            if (minutes == 60) {
+                minutes = 0;
+                hours++;
+            }
+            if (hours == 24) {
+                hours = 0;
+                days++;
+            }
+            setTimeString();
+        }
+
+        private void setTimeString() {
+            if (days > 0)
+            {
+                timeStamp = days + ":" + pad(hours);
+            }
+            else if (hours > 0) {
+                timeStamp = hours + ":" + pad(minutes);
+            }
+            else {
+                timeStamp = minutes + ":" + seconds;
+            }
+        }
+
+        private String pad(int number) {
+            if (number < 10) {
+                return "0" + number;
+            } else {
+                return String.valueOf(number);
+            }
+        }
     }
 
     public Form statsForm() {
@@ -252,11 +338,6 @@ public class UI extends Form {
         size.getAllStyles().setBgTransparency(0);
         size.getAllStyles().setBgColor(0x6b7e8c);
 
-        // Initialization for Name button/display
-        //Button name = new Button("Task");
-        //name.getStyle().setAlignment(CENTER);
-        //upper.add(tl.createConstraint().widthPercentage(60), name);
-
         Accordion accr = new Accordion();
         TextArea ta = new TextArea(7, 40);
         accr.addContent("Task", ta);
@@ -267,6 +348,8 @@ public class UI extends Form {
 
         // Init for Time
         Button time = new Button("00:00");
+        TimeDisplay timer = new TimeDisplay();
+        time.addActionListener((e) -> toggleRunning(timer));
         time.getStyle().setAlignment(CENTER);
         time.getAllStyles().setFgColor(0x752c29);
         time.getAllStyles().setBgTransparency(0);
@@ -274,6 +357,10 @@ public class UI extends Form {
         upper.add(tl.createConstraint().widthPercentage(-2), time);
 
         return upper;
+    }
+
+    private void toggleRunning(TimeDisplay timer) {
+
     }
 
     int currentSizeNum = 0;
