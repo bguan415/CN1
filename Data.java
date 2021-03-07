@@ -43,11 +43,9 @@ public class Data {
 
         }
 
-        catch (Exception e) { 
-
+        catch (Exception e) {
             System.err.println(e.getClass().getName() + ": " + e.getMessage());
             System.exit(0);
-
         }
 
     }
@@ -66,16 +64,15 @@ public class Data {
     }
 
     public ResultSet GetTask(String taskName) {
-        Connection c = null;
-        Statement stmt = null;
-        ResultSet rs = null;
         String sql = "SELECT DISTINCT * " +
             "FROM tasks " +
-            "WHERE name = "+taskName;
-        try {
-            c = this.connect();
-            stmt = c.createStatement();
-            rs = stmt.executeQuery(sql);
+            "WHERE name = ?";
+        ResultSet rs = null;
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, taskName);
+            rs = pstmt.executeQuery();
+            return rs;
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
@@ -104,9 +101,9 @@ public class Data {
         Statement stmt = null;
         ResultSet rs = null;
         String sql = "SELECT * " +
-            "FROM tasks " +
-            "WHERE name LIKE '%"+searchInput+"%'" + 
-            "ORDER BY LENGTH(name)";
+            " FROM tasks " +
+            " WHERE name LIKE '%"+searchInput+"%'" +
+            " ORDER BY LENGTH(name)";
         try {
             c = this.connect();
             stmt = c.createStatement();
@@ -122,10 +119,9 @@ public class Data {
         Statement stmt = null;
         ResultSet rs = null;
         String sql = "SELECT * " +
-            "FROM tasks " +
-            //"WHERE size = "+ searchInput;
-            "WHERE instr(size, '"+searchInput+"') > 0";
-            //ORDER BY name
+                "FROM tasks " +
+                " WHERE size = \""+searchInput+"\" "+
+                " ORDER BY _rowid_ DESC ";
         try {
             c = this.connect();
             stmt = c.createStatement();
@@ -137,17 +133,14 @@ public class Data {
     }
 
     public int GetSizeClassSize(String searchInput) {
-        Connection c = null;
-        Statement stmt = null;
         int sizeClassCount = 0;
         String sql = "SELECT Count(*) " +
-            "FROM tasks " +
-            "WHERE instr(size, '"+searchInput+"') > 0";
-            //ORDER BY 
-        try {
-            c = this.connect();
-            stmt = c.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+                "FROM tasks " +
+                "WHERE size = ?";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, searchInput);
+            ResultSet rs = pstmt.executeQuery();
             sizeClassCount = rs.getInt(1);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -216,8 +209,9 @@ public class Data {
     }
 
     public void IncrementRuntime(String taskName, int timeDifference) {
-        String sql = "UPDATE tasks SET runTime = runTime + ? " +
-         "WHERE name = ?";
+        String sql = "UPDATE tasks "+
+                "SET runTime = runTime + ? " +
+                "WHERE name = ?";
         
         try (Connection conn = this.connect(); 
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -244,11 +238,12 @@ public class Data {
     }
 
     public void UpdateTextColumnOfTask(String taskName, String column, String newVal) {
-        String sql = "UPDATE tasks SET "+column+" = ? " +
-         "WHERE name = ?";
+        String sql = "UPDATE tasks " +
+                "SET "+column+" = ? " +
+                "WHERE name = ?";
 
-        try (Connection conn = this.connect(); 
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, newVal);
             pstmt.setString(2, taskName);
             pstmt.executeUpdate();

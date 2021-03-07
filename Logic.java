@@ -20,8 +20,16 @@ public class Logic {
         return sqler.GetAllTasks();
     }
 
+    public ResultSet GetTask(String taskName) {
+        return sqler.GetSearchResultsByName(taskName);
+    }
+
+    public ResultSet GetSearchResultsBySize(String size) {
+        return sqler.GetSearchResultsBySize(size);
+    }
+
     public void SizeSummaryStatistics(String size) {
-        int numTasks = sqler.GetSizeClassSize(size);
+        int numTasks = CountSizeClass(size);
         if(numTasks == 0) return;
 
         int totalTime = 0;
@@ -29,11 +37,10 @@ public class Logic {
         int maxTime = 0;
         int minTime = 0;
 
-        ResultSet rs; 
         try {
-            rs = sqler.GetSearchResultsBySize(size);
-            maxTime = rs.getInt("runTime");
-            minTime = maxTime;
+            ResultSet rs = sqler.GetSearchResultsBySize(size);
+            maxTime = 0;
+            minTime = Integer.MAX_VALUE;
             
             while (rs.next()) {
                 int taskTimeSeconds = rs.getInt("runTime");
