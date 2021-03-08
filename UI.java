@@ -5,10 +5,7 @@ import com.codename1.ui.*;
 import com.codename1.ui.animations.Animation;
 import com.codename1.ui.animations.CommonTransitions;
 import com.codename1.ui.layouts.*;
-import com.codename1.ui.plaf.Border;
-import com.codename1.ui.plaf.RoundBorder;
-import com.codename1.ui.plaf.Style;
-import com.codename1.ui.plaf.UIManager;
+import com.codename1.ui.plaf.*;
 import com.codename1.ui.table.TableLayout;
 import com.codename1.ui.util.Resources;
 import com.codename1.ui.util.UITimer;
@@ -78,7 +75,7 @@ public class UI extends Form {
         blankSpace.getAllStyles().setBgTransparency(255);
         blankSpace.getAllStyles().setBgColor(0x37454f);
 
-        taskList.add(addTask());
+        //taskList.add(addTask());
 
         // Initialization for NewTask/Statistics buttons
         Container lower = new Container(new GridLayout(1, 2));
@@ -95,6 +92,8 @@ public class UI extends Form {
         stats.getAllStyles().setBgTransparency(255);
         stats.getAllStyles().setBgColor(0x6b7e8c);
         stats.getStyle().setAlignment(CENTER);
+
+
 
         // Listener for New Task button
         newTask.addActionListener(new ActionListener() {
@@ -121,13 +120,112 @@ public class UI extends Form {
 
     }
 
-    private class TimeDisplay {
+    public Task addTask() {
+        // Initialization for task viewer
+        TableLayout tl = new TableLayout(1, 4);
+        Task upper = newStyledTask(tl);
+
+        // Initialization for size button
+        upper.add(tl.createConstraint().widthPercentage(20), upper.createSizeButton());
+
+
+        Accordion accr = new Accordion();
+        TextArea ta = new TextArea(7, 40);
+        accr.addContent("Task", ta);
+        ta.setHint("Description");
+        upper.add(tl.createConstraint().widthPercentage(60), accr);
+        ta.getAllStyles().setBgTransparency(0);
+
+        // Init for Time
+        upper.add(tl.createConstraint().widthPercentage(-2), upper.createTimeButton());
+
+        return upper;
+    }
+
+    private Task newStyledTask(Layout tl) {
+        Task upper = new Task(tl);
+
+        Stroke borderStroke = new Stroke(2, Stroke.CAP_SQUARE, Stroke.JOIN_MITER, 1);
+
+
+        upper.getStyle().setBgTransparency(255);
+        upper.getStyle().setBgColor(0xc0c0c0);
+        upper.getStyle().setPadding(10, 10, 10, 10);
+        upper.getStyle().setBorder(Border.createEtchedLowered());
+        upper.getAllStyles().setFgColor(0x2e3030);
+        upper.getUnselectedStyle().setBorder(RoundRectBorder.create().
+                strokeColor(0).
+                strokeOpacity(20).
+                stroke(borderStroke));
+        upper.getAllStyles().setMarginUnit(Style.UNIT_TYPE_DIPS);
+        upper.getAllStyles().setMargin(Component.BOTTOM, 1);
+
+        return upper;
+    }
+
+    public class Task extends Container {
+        String taskName;
+        int currentSize;
+
+        public Task(Layout t1) {
+            super(t1);
+            currentSize = 0;
+            taskName = "Task";
+        }
+
+
+        public Button createSizeButton() {
+            Button size = new Button("S");
+            size.getStyle().setAlignment(CENTER);
+            size.getAllStyles().setFgColor(0x2e3030);
+            size.getAllStyles().setBgTransparency(0);
+            size.getAllStyles().setBgColor(0x6b7e8c);
+
+            size.addActionListener((e) -> changeSize(size));
+
+            return size;
+        }
+
+        public void changeSize(Button sizeButton) {
+            currentSize += 1;
+            if (currentSize == 4)
+                currentSize = 0;
+            String[] sizes = {"S", "M", "L", "XL"};
+            sizeButton.setText(sizes[currentSize]);
+            logic.ResizeTask(taskName,sizes[currentSize]);
+        }
+
+        public TimeDisplay createTimeButton() {
+            TimeDisplay time = new TimeDisplay();
+            time.getStyle().setAlignment(CENTER);
+            time.getAllStyles().setFgColor(0x752c29);
+            time.getAllStyles().setBgTransparency(0);
+            time.getAllStyles().setBgColor(0x752c29);
+
+            time.addActionListener((e) -> toggleRunning(time));
+            return time;
+        }
+
+        private void toggleRunning(TimeDisplay time) {
+            if (time.timerRunning) {
+                time.stop(time);
+                logic.StartTask(taskName);
+            }
+            else {
+                time.start(time);
+                logic.StopTask(taskName);
+            }
+        }
+    }
+
+    public class TimeDisplay extends Button {
         int seconds;
         int minutes;
         int hours;
         int days;
         public String timeStamp;
         int lastSecond;
+        boolean timerRunning;
 
         public TimeDisplay() {
             seconds = 0;
@@ -137,19 +235,26 @@ public class UI extends Form {
             timeStamp = "00:00";
             Calendar curTime = Calendar.getInstance();
             lastSecond = curTime.get(Calendar.SECOND);
+            timerRunning =  false;
+            setText(timeStamp);
         }
 
-        public void start() {
-            getComponentForm().registerAnimated((Animation) this);
+        public void start(Button time) {
+            System.out.print(time + "\n");
+            timerRunning = true;
+            registerAnimated(time);
         }
 
-        public void stop() {
-            getComponentForm().deregisterAnimated((Animation) this);
+        public void stop(Button time) {
+            System.out.print(time + "\n");
+            timerRunning = false;
+            deregisterAnimated(time);
         }
 
         public boolean animate() {
             if (timePassed()) {
                 secondPassed();
+                setText(timeStamp);
                 return true;
             }
 
@@ -189,10 +294,10 @@ public class UI extends Form {
                 timeStamp = days + ":" + pad(hours);
             }
             else if (hours > 0) {
-                timeStamp = hours + ":" + pad(minutes);
+                timeStamp = pad(hours) + ":" + pad(minutes);
             }
             else {
-                timeStamp = minutes + ":" + seconds;
+                timeStamp = pad(minutes) + ":" + pad(seconds);
             }
         }
 
@@ -304,73 +409,6 @@ public class UI extends Form {
 
         return statsPage;
 
-    }
-
-    public Container addTask() {
-        // Initialization for task viewer
-        TableLayout tl = new TableLayout(1, 4);
-        Container upper = new Container(tl);
-
-        Stroke borderStroke = new Stroke(2, Stroke.CAP_SQUARE, Stroke.JOIN_MITER, 1);
-
-
-        upper.getStyle().setBgTransparency(255);
-        upper.getStyle().setBgColor(0xc0c0c0);
-        upper.getStyle().setPadding(10, 10, 10, 10);
-        upper.getStyle().setBorder(Border.createEtchedLowered());
-        upper.getAllStyles().setFgColor(0x2e3030);
-        upper.getUnselectedStyle().setBorder(RoundBorder.create().
-                rectangle(true).
-                color(0xcfdae3).
-                strokeColor(0).
-                strokeOpacity(20).
-                stroke(borderStroke));
-        upper.getAllStyles().setMarginUnit(Style.UNIT_TYPE_DIPS);
-        upper.getAllStyles().setMargin(Component.BOTTOM, 1);
-
-
-        // Initialization for size button
-        Button size = new Button("Size");
-        size.getStyle().setAlignment(CENTER);
-        upper.add(tl.createConstraint().widthPercentage(20), size);
-        size.addActionListener((e) -> changeSize(size));
-        size.getAllStyles().setFgColor(0x2e3030);
-        size.getAllStyles().setBgTransparency(0);
-        size.getAllStyles().setBgColor(0x6b7e8c);
-
-        Accordion accr = new Accordion();
-        TextArea ta = new TextArea(7, 40);
-        accr.addContent("Task", ta);
-        ta.setHint("Description");
-        upper.add(tl.createConstraint().widthPercentage(60), accr);
-        ta.getAllStyles().setBgTransparency(0);
-
-
-        // Init for Time
-        Button time = new Button("00:00");
-        TimeDisplay timer = new TimeDisplay();
-        time.addActionListener((e) -> toggleRunning(timer));
-        time.getStyle().setAlignment(CENTER);
-        time.getAllStyles().setFgColor(0x752c29);
-        time.getAllStyles().setBgTransparency(0);
-        time.getAllStyles().setBgColor(0x752c29);
-        upper.add(tl.createConstraint().widthPercentage(-2), time);
-
-        return upper;
-    }
-
-    private void toggleRunning(TimeDisplay timer) {
-
-    }
-
-    int currentSizeNum = 0;
-
-    public void changeSize(Button sizeButton) {
-        currentSizeNum += 1;
-        if (currentSizeNum == 5)
-            currentSizeNum = 0;
-        String[] sizes = {"Size", "S", "M", "L", "XL"};
-        sizeButton.setText(sizes[currentSizeNum]);
     }
 
     Logic logic;
