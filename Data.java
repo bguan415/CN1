@@ -80,6 +80,22 @@ public class Data {
         return rs;
     }
 
+    public boolean TaskExists(String taskName) {
+        String sql = "SELECT Count(*) " +
+                "FROM tasks " +
+                "WHERE name = ?";
+        ResultSet rs = null;
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, taskName);
+            rs = pstmt.executeQuery();
+            return rs.getInt(1) == 1;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return false;
+    }
+
     public String GetMinRuntimeTask(String size) {
         String shortestTask = null;
         String sql = "SELECT DISTINCT * " +

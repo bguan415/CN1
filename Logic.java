@@ -23,6 +23,10 @@ public class Logic {
     public ResultSet GetTask(String taskName) {
         return sqler.GetTask(taskName);
     }
+
+    public boolean TaskExists(String taskName) {
+        return sqler.TaskExists(taskName);
+    }
     
     public ResultSet GetAllTasks() {
         return sqler.GetAllTasks();
@@ -46,7 +50,7 @@ public class Logic {
 
         HashMap<String, Integer> stats = new HashMap<>();
         int numTasks = CountSizeClass(size);
-        if(numTasks < 2) return stats;
+        if(numTasks < 2>) return stats;
 
         int totalTime = 0;
         int meanTime = 0;
