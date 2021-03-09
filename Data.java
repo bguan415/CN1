@@ -3,6 +3,7 @@ import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 public class Data {
@@ -77,6 +78,42 @@ public class Data {
             System.out.println(e.getMessage());
         }
         return rs;
+    }
+
+    public String GetMinRuntimeTask(String size) {
+        String shortestTask = null;
+        String sql = "SELECT DISTINCT * " +
+                "FROM tasks" +
+                (size.isEmpty() ? "" : " WHERE size = \"" + size + "\"") +
+                " ORDER BY runTime";
+        ResultSet rs = null;
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            rs = pstmt.executeQuery();
+            shortestTask = rs.getString("name");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        
+        return shortestTask;
+    }
+
+    public String GetMaxRuntimeTask(String size) {
+        String longestTask = null;
+        String sql = "SELECT DISTINCT * " +
+                "FROM tasks" +
+                (size.isEmpty() ? "" : " WHERE size = \"" + size + "\"") +
+                " ORDER BY runTime DESC";
+        ResultSet rs = null;
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            rs = pstmt.executeQuery();
+            longestTask = rs.getString("name");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return longestTask;
     }
 
     public ResultSet GetAllTasks() {
@@ -242,8 +279,8 @@ public class Data {
                 "SET "+column+" = ? " +
                 "WHERE name = ?";
 
-        try (Connection conn = this.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = this.connect(); 
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, newVal);
             pstmt.setString(2, taskName);
             pstmt.executeUpdate();
