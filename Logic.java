@@ -50,7 +50,7 @@ public class Logic {
 
         HashMap<String, Integer> stats = new HashMap<>();
         int numTasks = CountSizeClass(size);
-        if(numTasks < 2>) return stats;
+        if(numTasks < 2) return stats;
 
         int totalTime = 0;
         int meanTime = 0;
@@ -74,7 +74,7 @@ public class Logic {
             }
     
             meanTime = totalTime/numTasks;
-        } catch (SQLException e) {
+            } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
@@ -89,12 +89,14 @@ public class Logic {
 
     public HashMap<String, Integer> FullSummaryStatistics() {
         HashMap<String, Integer> stats = new HashMap<>();
+        int numTasks = CountAllTasks();
+        if(numTasks < 2) return stats;
 
         int totalTime = 0;
         int meanTime = 0;
         int maxTime = 0;
         int minTime = Integer.MAX_VALUE;
-        int numTasks = 0;
+
 
         List<String> sizes = Arrays.asList( "S", "M", "L", "XL");
 
@@ -105,7 +107,6 @@ public class Logic {
             }
 
             totalTime += sizeStats.get("totalTime");
-            numTasks += sizeStats.get("numTasks");
             if(sizeStats.get("minTime") < minTime) {
                 minTime = sizeStats.get("minTime");
             }
@@ -120,6 +121,7 @@ public class Logic {
         stats.put("meanTime",meanTime);
         stats.put("maxTime",maxTime);
         stats.put("minTime",minTime);
+        stats.put("numTasks",numTasks);
 
         return stats;
     }
@@ -144,6 +146,10 @@ public class Logic {
         sqler.IncrementRuntime(taskName, timeDifference);
 
         sqler.DeleteStartTime(taskName);
+    }
+
+    public int CountAllTasks() {
+        return sqler.CountAllTasks();
     }
 
     public int CountSizeClass(String size) {

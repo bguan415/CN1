@@ -201,6 +201,20 @@ public class Data {
         return sizeClassCount;
     }
 
+    public int CountAllTasks() {
+        int count = 0;
+        String sql = "SELECT Count(*) " +
+                "FROM tasks";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            ResultSet rs = pstmt.executeQuery();
+            count = rs.getInt(1);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return count;
+    }
+
     public boolean isGivenTaskRunning(String taskName) {
         boolean isGivenTaskRunning = isAnyTaskRunning();
         try {
