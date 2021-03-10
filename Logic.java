@@ -4,36 +4,72 @@ import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 public class Logic {
 
     public Logic() {
         sqler = new Data();
         sqler.createTable();
+
+        //ResultSet rs = sqler.GetBoth("S");
+
+        System.out.println(TaskExists("newTasks"));
+        HashMap<String, String> res = GetMinandMaxRuntimeTasks("S");
+        res.forEach((k,v) -> System.out.println("key: "+k+" value:"+v));
+        System.out.println();
+        HashMap<String, Integer> results = SizeSummaryStatistics("S");
+        results.forEach((k,v) -> System.out.println("key: "+k+" value:"+v));
     }
 
     public void CreateNewTask(String taskName, String size) {
         sqler.insert(taskName, size);
     }
 
+    public ResultSet GetTask(String taskName) {
+        return sqler.GetTask(taskName);
+    }
+
+    public boolean TaskExists(String taskName) {
+        return sqler.TaskExists(taskName);
+    }
+    
     public ResultSet GetAllTasks() {
         return sqler.GetAllTasks();
     }
 
-    public void SizeSummaryStatistics(String size) {
-        int numTasks = sqler.GetSizeClassSize(size);
-        if(numTasks == 0) return;
+    public HashMap<String, String> GetMinandMaxRuntimeTasks(String size) {
+        HashMap<String, String> maxAndMinTasks = new HashMap<>();
+
+        maxAndMinTasks.put("shortestTask", sqler.GetMinRuntimeTask(size));
+        maxAndMinTasks.put("longestTask",sqler.GetMaxRuntimeTask(size));
+
+        return maxAndMinTasks;
+    }
+
+    public ResultSet GetSearchResultsBySize(String size) {
+        return sqler.GetSearchResultsBySize(size);
+    }
+
+    public HashMap<String, Integer> SizeSummaryStatistics(String size) {
+        if(size.isEmpty()) return FullSummaryStatistics();
+
+        HashMap<String, Integer> stats = new HashMap<>();
+        int numTasks = CountSizeClass(size);
+        if(numTasks < 2) return stats;
 
         int totalTime = 0;
         int meanTime = 0;
         int maxTime = 0;
         int minTime = 0;
 
-        ResultSet rs; 
         try {
-            rs = sqler.GetSearchResultsBySize(size);
-            maxTime = rs.getInt("runTime");
-            minTime = maxTime;
+            ResultSet rs = sqler.GetSearchResultsBySize(size);
+            maxTime = 0;
+            minTime = Integer.MAX_VALUE;
             
             while (rs.next()) {
                 int taskTimeSeconds = rs.getInt("runTime");
@@ -47,9 +83,57 @@ public class Logic {
             }
     
             meanTime = totalTime/numTasks;
+            System.out.println(totalTime + "\t" + meanTime + "\t" + minTime + "\t" + maxTime);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+
+        stats.put("totalTime",totalTime);
+        stats.put("meanTime",meanTime);
+        stats.put("maxTime",maxTime);
+        stats.put("minTime",minTime);
+        stats.put("numTasks",numTasks);
+
+        return stats;
+    }
+
+    public HashMap<String, Integer> FullSummaryStatistics() {
+        HashMap<String, Integer> stats = new HashMap<>();
+        int numTasks = CountAllTasks();
+        if(numTasks < 2) return stats;
+
+        int totalTime = 0;
+        int meanTime = 0;
+        int maxTime = 0;
+        int minTime = Integer.MAX_VALUE;
+
+
+        List<String> sizes = Arrays.asList( "S", "M", "L", "XL");
+
+        for(String size : sizes) {
+            HashMap<String, Integer> sizeStats = SizeSummaryStatistics(size);
+            if(sizeStats.isEmpty()) {
+                continue;
+            }
+
+            totalTime += sizeStats.get("totalTime");
+            if(sizeStats.get("minTime") < minTime) {
+                minTime = sizeStats.get("minTime");
+            }
+            if(sizeStats.get("maxTime") > maxTime) {
+                maxTime = sizeStats.get("maxTime");
+            }
+        }
+
+        meanTime = totalTime/numTasks;
+
+        stats.put("totalTime",totalTime);
+        stats.put("meanTime",meanTime);
+        stats.put("maxTime",maxTime);
+        stats.put("minTime",minTime);
+        stats.put("numTasks",numTasks);
+
+        return stats;
     }
 
     public void StartTask(String taskName) {
@@ -72,6 +156,10 @@ public class Logic {
         sqler.IncrementRuntime(taskName, timeDifference);
 
         sqler.DeleteStartTime(taskName);
+    }
+
+    public int CountAllTasks() {
+        return sqler.CountAllTasks();
     }
 
     public int CountSizeClass(String size) {
