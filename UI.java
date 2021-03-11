@@ -257,24 +257,6 @@ public class UI extends Form {
         return upper;
     }
 
-    private int SizeStringtoInt(String size) {
-        if(size.equals("S")) {
-            return 0;
-        }
-        if(size.equals("M")) {
-            return 1;
-        }
-        if(size.equals("L")) {
-            return 2;
-        }
-        if(size.equals("XL")) {
-            return 3;
-        }
-        else {
-            return 0;
-        }
-    }
-
     public class Task extends Container {
         String taskName;
         int currentSize;
@@ -329,8 +311,8 @@ public class UI extends Form {
             logic.ResizeTask(taskName,sizes[currentSize]);
         }
 
-        public TimeDisplay createTimeButton() {
-            TimeDisplay time = new TimeDisplay();
+        public UI.TimeDisplay createTimeButton() {
+            UI.TimeDisplay time = new UI.TimeDisplay();
             time.getStyle().setAlignment(CENTER);
             time.getAllStyles().setFgColor(0x752c29);
             time.getAllStyles().setBgTransparency(0);
@@ -340,8 +322,8 @@ public class UI extends Form {
             return time;
         }
 
-        public TimeDisplay createTimeButton(int runTime) {
-            TimeDisplay time = new TimeDisplay(logic.GenerateTimeStringFromSeconds(runTime));
+        public UI.TimeDisplay createTimeButton(int runTime) {
+            UI.TimeDisplay time = new UI.TimeDisplay(logic.GenerateTimeStringFromSeconds(runTime));
             time.getStyle().setAlignment(CENTER);
             time.getAllStyles().setFgColor(0x752c29);
             time.getAllStyles().setBgTransparency(0);
@@ -351,7 +333,7 @@ public class UI extends Form {
             return time;
         }
 
-        private void toggleRunning(TimeDisplay time) {
+        private void toggleRunning(UI.TimeDisplay time) {
             if (time.timerRunning) {
                 time.stop(time);
                 logic.StopTask(taskName);
@@ -361,7 +343,27 @@ public class UI extends Form {
                 logic.StartTask(taskName);
             }
         }
+
+        private int SizeStringtoInt(String size) {
+            if(size.equals("S")) {
+                return 0;
+            }
+            if(size.equals("M")) {
+                return 1;
+            }
+            if(size.equals("L")) {
+                return 2;
+            }
+            if(size.equals("XL")) {
+                return 3;
+            }
+            else {
+                return 0;
+            }
+        }
     }
+
+
 
     public class TimeDisplay extends Button {
         int seconds;

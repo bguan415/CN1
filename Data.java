@@ -107,6 +107,7 @@ public class Data {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             rs = pstmt.executeQuery();
             shortestTask = rs.getString("name");
+            rs.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
@@ -124,6 +125,7 @@ public class Data {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             rs = pstmt.executeQuery();
             longestTask = rs.getString("name");
+            rs.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }

@@ -79,6 +79,7 @@ public class Logic {
                     maxTime = taskTimeSeconds;
                 }
             }
+            rs.close();
     
             meanTime = totalTime/numTasks;
             System.out.println(totalTime + "\t" + meanTime + "\t" + minTime + "\t" + maxTime);

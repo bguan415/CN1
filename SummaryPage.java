@@ -3,6 +3,7 @@ package org.ecs160.a2;
 import com.codename1.components.FloatingActionButton;
 import com.codename1.io.Log;
 import com.codename1.ui.*;
+import com.codename1.ui.animations.CommonTransitions;
 import com.codename1.ui.events.ActionEvent;
 import com.codename1.ui.events.ActionListener;
 import com.codename1.ui.layouts.BorderLayout;
@@ -37,7 +38,10 @@ public class SummaryPage extends Form{
         Button filterer = new Button("All Tasks");
         filterer.setIcon(FontImage.createMaterial(FontImage.MATERIAL_FILTER_ALT, s));
         toolbar.getToolbar().setTitleComponent(filterer);
-        filterer.addActionListener((e) -> changeSize(filterer));
+        filterer.addActionListener((e) -> {
+            changeSize(filterer);
+            replace(getContentPane().getComponentAt(1),BuildStatsCnt(sizesForSummary[currentSizeNum]), CommonTransitions.createFade(5));
+        });
 
         getToolbar().setBackCommand("",e -> {
                 Form UIForm = new UI();
@@ -74,6 +78,7 @@ public class SummaryPage extends Form{
         HashMap<String, Integer> statMap = logic.SizeSummaryStatistics(sizesForSummary[currentSizeNum]);
         HashMap<String, String> minMax = logic.GetMinandMaxRuntimeTasks(sizesForSummary[currentSizeNum]);
 
+        System.out.println(sizesForSummary[currentSizeNum]);
         Container totalTimeCnt = titleAndTime("Total Time:", logic.GenerateTimeStringFromSeconds(statMap.get("totalTime")));
         totalTimeCnt.add("_____________________________");
         totalTimeCnt.add(whiteCenterLabel("Number of Tasks:"));
@@ -122,5 +127,5 @@ public class SummaryPage extends Form{
     }
 
     Logic logic;
-    String[] sizesForSummary = {"", "S Tasks", "M Tasks", "L Tasks", "XL Tasks"};
+    String[] sizesForSummary = {"", "S", "M", "L", "XL"};
 }
