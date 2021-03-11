@@ -56,7 +56,7 @@ public class UI extends Form {
 
         logic = new Logic();
 
-        setTitle("Task List");
+        setTitle("[APP NAME HERE]");
         setLayout(new BorderLayout());
 
         taskList = new Container(new BoxLayout(BoxLayout.Y_AXIS));
@@ -82,7 +82,10 @@ public class UI extends Form {
             System.out.println(e.getMessage());
         }
 
-
+        Container blankSpace = new Container(new BoxLayout(BoxLayout.Y_AXIS));
+        blankSpace.getAllStyles().setFgColor(0x99a1a1);
+        blankSpace.getAllStyles().setBgTransparency(255);
+        blankSpace.getAllStyles().setBgColor(0x37454f);
 
         FloatingActionButton fab = FloatingActionButton.createFAB(FontImage.MATERIAL_ADD);
         fab.getAllStyles().setFgColor(0x2e3030);
@@ -108,12 +111,13 @@ public class UI extends Form {
 
         setScrollable(false);
         add(BorderLayout.NORTH, taskList);
+        add(BorderLayout.CENTER, blankSpace);
 
     }
 
     void search(String text) {
         if(text == null || text.length() == 0) {
-            for(Component c : getContentPane()) {
+            for(Component c : taskList) {
                 c.setHidden(false);
                 c.setVisible(true);
             }
@@ -128,7 +132,7 @@ public class UI extends Form {
             }
         }
         getContentPane().animateLayout(200);
-    }
+    }//set all to invisible and
 
     private Dialog taskPopup() {
         BorderLayout bl = new BorderLayout();

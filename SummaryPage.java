@@ -64,6 +64,7 @@ public class SummaryPage extends Form{
         Label output = new Label(input);
         output.getStyle().setAlignment(CENTER);
         output.getStyle().setFgColor(0xffffff);
+        output.getStyle().setFont(Font.createSystemFont(Font.FACE_PROPORTIONAL, Font.STYLE_BOLD, Font.SIZE_LARGE));
         return output;
     }
 
@@ -96,7 +97,7 @@ public class SummaryPage extends Form{
 
         stats.add(totalTimeCnt).add(meanTimeCnt).add(minTimeCnt).add(maxTimeCnt).add(newestTasks).add(longestTasks);
         return stats;
-    }
+    }//set name and call remove OR set to invisible/visible as needed
 
     int currentSizeNum = 0;
 
