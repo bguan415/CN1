@@ -14,15 +14,12 @@ public class Logic {
     public Logic() {
         sqler = new Data();
         sqler.createTable();
-
-        //ResultSet rs = sqler.GetBoth("S");
-
-        System.out.println(TaskExists("newTasks"));
+        /*System.out.println(TaskExists("newTasks"));
         HashMap<String, String> res = GetMinandMaxRuntimeTasks("S");
         res.forEach((k,v) -> System.out.println("key: "+k+" value:"+v));
         System.out.println();
-        HashMap<String, Integer> results = SizeSummaryStatistics("S");
-        results.forEach((k,v) -> System.out.println("key: "+k+" value:"+v));
+        HashMap<String, Integer> results = SizeSummaryStatistics("");
+        results.forEach((k,v) -> System.out.println("key: "+k+" value:"+v));*/
     }
 
     public void CreateNewTask(String taskName, String size) {
@@ -59,7 +56,8 @@ public class Logic {
 
         HashMap<String, Integer> stats = new HashMap<>();
         int numTasks = CountSizeClass(size);
-        if(numTasks < 2) return stats;
+        //if(numTasks < 2) return stats;
+        if(numTasks == 0) return stats;
 
         int totalTime = 0;
         int meanTime = 0;
@@ -81,6 +79,7 @@ public class Logic {
                     maxTime = taskTimeSeconds;
                 }
             }
+            rs.close();
     
             meanTime = totalTime/numTasks;
             System.out.println(totalTime + "\t" + meanTime + "\t" + minTime + "\t" + maxTime);
@@ -178,7 +177,7 @@ public class Logic {
         sqler.SetTaskDescription(taskName, description);
     }
 
-    private String GenerateTimeStringFromSeconds(int timeInSeconds) {
+    public String GenerateTimeStringFromSeconds(int timeInSeconds) {
         int hours = timeInSeconds/3600;
         int minutes = (timeInSeconds % 3600)/60;
         int seconds = (timeInSeconds % 3600)%60;
