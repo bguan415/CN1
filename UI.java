@@ -60,6 +60,7 @@ public class UI extends Form {
         setLayout(new BorderLayout());
 
         taskList = new Container(new BoxLayout(BoxLayout.Y_AXIS));
+        taskList.setScrollableY(true);
         taskList.getAllStyles().setFgColor(0x6b7e8c);
         taskList.getAllStyles().setBgTransparency(255);
         taskList.getAllStyles().setBgColor(0x37454f);
@@ -74,7 +75,7 @@ public class UI extends Form {
                 String description = rs.getString("description");
                 int runTime = rs.getInt("runTime");
 
-                taskList.add(DisplayTask(name, size, description, runTime));
+                taskList.add(DisplayTask(false, name, size, description, runTime));
                 taskList.animateLayout(5);
             }
         } catch (SQLException e) {
@@ -105,7 +106,7 @@ public class UI extends Form {
         getToolbar().addSearchCommand(e -> search((String)e.getSource()));
 
 
-        setScrollable(true);
+        setScrollable(false);
         add(BorderLayout.NORTH, taskList);
 
     }
@@ -182,7 +183,7 @@ public class UI extends Form {
         return upper;
     }
 
-    public Task DisplayTask(String name, String size, String description, int runTime) {
+    public Task DisplayTask(boolean isNew, String name, String size, String description, int runTime) {
         // Initialization for task viewer
         TableLayout tl = new TableLayout(1, 4);
         String taskName;
@@ -202,6 +203,8 @@ public class UI extends Form {
 
         // Init for Time
         upper.add(tl.createConstraint().widthPercentage(-2), upper.createTimeButton(runTime));
+
+        if(isNew) logic.CreateNewTask(taskName, size);
 
         return upper;
     }

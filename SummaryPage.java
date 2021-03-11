@@ -53,6 +53,10 @@ public class SummaryPage extends Form{
         Container container = new Container(new BoxLayout(BoxLayout.Y_AXIS));
         container.add(whiteCenterLabel(label));
         container.add(whiteCenterLabel(timeStr));
+        container.getAllStyles().setFgColor(0x2e3030);
+        container.getAllStyles().setBorder(Border.createLineBorder(6, 0x435059));
+        container.getAllStyles().setBgTransparency(255);
+        container.getAllStyles().setBgColor(0x6b7e8c);
         return container;
     }
 
@@ -64,42 +68,33 @@ public class SummaryPage extends Form{
     }
 
     private Container BuildStatsCnt(String size) {
-        Container stats = new Container(new GridLayout(2, 2));
+        Container stats = new Container(new GridLayout(3, 2));
 
         HashMap<String, Integer> statMap = logic.SizeSummaryStatistics(sizesForSummary[currentSizeNum]);
         HashMap<String, String> minMax = logic.GetMinandMaxRuntimeTasks(sizesForSummary[currentSizeNum]);
 
         Container totalTimeCnt = titleAndTime("Total Time:", logic.GenerateTimeStringFromSeconds(statMap.get("totalTime")));
-        totalTimeCnt.getAllStyles().setFgColor(0x2e3030);
-        totalTimeCnt.getAllStyles().setBorder(Border.createLineBorder(6, 0x435059));
-        totalTimeCnt.getAllStyles().setBgTransparency(255);
-        totalTimeCnt.getAllStyles().setBgColor(0x6b7e8c);
-        totalTimeCnt.getStyle().setAlignment(CENTER);
+        totalTimeCnt.add("_____________________________");
+        totalTimeCnt.add(whiteCenterLabel("Number of Tasks:"));
+        totalTimeCnt.add(whiteCenterLabel(statMap.get("numTasks")+""));
 
         Container meanTimeCnt = titleAndTime("Mean Time:", logic.GenerateTimeStringFromSeconds(statMap.get("meanTime")));
-        meanTimeCnt.getAllStyles().setFgColor(0x2e3030);
-        meanTimeCnt.getAllStyles().setBorder(Border.createLineBorder(6, 0x435059));
-        meanTimeCnt.getAllStyles().setBgTransparency(255);
-        meanTimeCnt.getAllStyles().setBgColor(0x6b7e8c);
-        meanTimeCnt.getStyle().setAlignment(CENTER);
 
         Container minTimeCnt = titleAndTime("Min Time:", logic.GenerateTimeStringFromSeconds(statMap.get("minTime")));
         minTimeCnt.add(whiteCenterLabel(minMax.get("shortestTask")));
-        minTimeCnt.getAllStyles().setFgColor(0x2e3030);
-        minTimeCnt.getAllStyles().setBorder(Border.createLineBorder(6, 0x435059));
-        minTimeCnt.getAllStyles().setBgTransparency(255);
-        minTimeCnt.getAllStyles().setBgColor(0x6b7e8c);
-        minTimeCnt.getStyle().setAlignment(CENTER);
 
         Container maxTimeCnt = titleAndTime("Max Time:", logic.GenerateTimeStringFromSeconds(statMap.get("maxTime")));
         maxTimeCnt.add(whiteCenterLabel(minMax.get("longestTask")));
-        maxTimeCnt.getAllStyles().setFgColor(0x2e3030);
-        maxTimeCnt.getAllStyles().setBorder(Border.createLineBorder(6, 0x435059));
-        maxTimeCnt.getAllStyles().setBgTransparency(255);
-        maxTimeCnt.getAllStyles().setBgColor(0x6b7e8c);
-        maxTimeCnt.getStyle().setAlignment(CENTER);
 
-        stats.add(totalTimeCnt).add(meanTimeCnt).add(minTimeCnt).add(maxTimeCnt);
+
+        Container newestTasks = titleAndTime("Newest Tasks","1. newestTaskName1");
+        newestTasks.add(whiteCenterLabel("2. newestTaskName2"));
+        newestTasks.add(whiteCenterLabel("3. newestTaskName3"));
+        Container longestTasks = titleAndTime("Longest Tasks","1. longestTaskName");
+        longestTasks.add(whiteCenterLabel("2. longestTaskName2"));
+        longestTasks.add(whiteCenterLabel("3. longestTaskName3"));
+
+        stats.add(totalTimeCnt).add(meanTimeCnt).add(minTimeCnt).add(maxTimeCnt).add(newestTasks).add(longestTasks);
         return stats;
     }
 
