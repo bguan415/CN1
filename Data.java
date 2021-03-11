@@ -110,7 +110,6 @@ public class Data {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        
         return shortestTask;
     }
 
@@ -128,7 +127,6 @@ public class Data {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-
         return longestTask;
     }
 
