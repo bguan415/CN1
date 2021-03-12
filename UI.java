@@ -53,17 +53,12 @@ public class UI extends Form {
     private int taskNumber;
 
     public UI() {
+
         logic = new Logic();
         setTitle("[APP NAME HERE]");
         setLayout(new BorderLayout());
 
-        taskList = new Container(new BoxLayout(BoxLayout.Y_AXIS));
-        taskList.setScrollableY(true);
-        taskList.getAllStyles().setFgColor(0x6b7e8c);
-        taskList.getAllStyles().setBgTransparency(255);
-        taskList.getAllStyles().setBgColor(0x37454f);
-        taskList.getStyle().setPadding(20, 20, 20, 20);
-        taskList.getAllStyles().setBorder(Border.createLineBorder(6, 0x37454f));
+        createTaskList();
 
         try {
             ResultSet rs = logic.GetAllTasks();
@@ -80,43 +75,9 @@ public class UI extends Form {
             System.out.println(e.getMessage());
         }
 
-        Container blankSpace = new Container(new BoxLayout(BoxLayout.Y_AXIS));
-        blankSpace.getAllStyles().setFgColor(0x99a1a1);
-        blankSpace.getAllStyles().setBgTransparency(255);
-        blankSpace.getAllStyles().setBgColor(0x37454f);
-
-        FloatingActionButton fab = FloatingActionButton.createFAB(FontImage.MATERIAL_ADD);
-        fab.getAllStyles().setFgColor(0x2e3030);
-        fab.getAllStyles().setBgColor(0x6b7e8c);
-        fab.getAllStyles().setBgTransparency(255);
-        fab.bindFabToContainer(getContentPane());
-        fab.addActionListener(e -> {
-            Dialog popup = taskPopup();
-            popup.show();
-        });
-
-        FloatingActionButton fab2 = FloatingActionButton.createFAB(FontImage.MATERIAL_ASSESSMENT);
-        fab2.getAllStyles().setFgColor(0x2e3030);
-        fab2.getAllStyles().setBgColor(0x6b7e8c);
-        fab2.getAllStyles().setBgTransparency(255);
-<<<<<<< Updated upstream
-        fab2.bindFabToContainer(getContentPane());
-        fab2.addActionListener(e -> {
-            new SummaryPage(logic).show();
-=======
-
-        Container layer = getLayeredPane(getClass(), true);
-        FlowLayout flow = new FlowLayout(RIGHT);
-        flow.setValign(BOTTOM);
-        layer.setLayout(flow);
-        layer.add(fab2 );
-        fab2.getAllStyles().setMarginUnit(Style.UNIT_TYPE_DIPS);
-        fab2.getAllStyles().setMarginBottom(15);
-
-        fab2.addActionListener(e -> {
-            new SummaryPage(logic, this).show();
->>>>>>> Stashed changes
-        });
+        Container blankSpace = createSpacing();
+        createNewTaskButton();
+        createStatPageButton();
 
         getToolbar().addSearchCommand(e -> search((String)e.getSource()));
 
@@ -127,7 +88,61 @@ public class UI extends Form {
 
     }
 
-    void search(String text) {
+    private Container createSpacing(){
+        Container blankSpace = new Container(new BoxLayout(BoxLayout.Y_AXIS));
+        blankSpace.getAllStyles().setFgColor(0x99a1a1);
+        blankSpace.getAllStyles().setBgTransparency(255);
+        blankSpace.getAllStyles().setBgColor(0x37454f);
+        return blankSpace;
+    }
+
+    private void createNewTaskButton() {
+        FloatingActionButton fab = makeFAB(FontImage.MATERIAL_ADD);
+        fab.bindFabToContainer(getContentPane());
+        fab.addActionListener(e -> {
+            Dialog popup = taskPopup();
+            popup.show();
+        });
+    }
+
+    private void createStatPageButton() {
+        FloatingActionButton fab = makeFAB(FontImage.MATERIAL_ASSESSMENT);
+        Container layer = getLayeredPane(getClass(), true);
+        FlowLayout flow = new FlowLayout(RIGHT);
+        flow.setValign(BOTTOM);
+        layer.setLayout(flow);
+        layer.add(fab);
+        fab.getAllStyles().setMarginUnit(Style.UNIT_TYPE_DIPS);
+        fab.getAllStyles().setMarginBottom(15);
+        fab.addActionListener(e -> {
+            if (logic.CountAllTasks() > 0) {
+                new SummaryPage(logic, this).show();
+            } else {
+                Dialog popup = NoTasksPopup();
+                popup.show();
+            }
+        });
+    }
+
+    private FloatingActionButton makeFAB(char icon) {
+        FloatingActionButton fab = FloatingActionButton.createFAB(icon);
+        fab.getAllStyles().setFgColor(0x2e3030);
+        fab.getAllStyles().setBgColor(0x6b7e8c);
+        fab.getAllStyles().setBgTransparency(255);
+        return fab;
+    }
+
+    private void createTaskList() {
+        taskList = new Container(new BoxLayout(BoxLayout.Y_AXIS));
+        taskList.setScrollableY(true);
+        taskList.getAllStyles().setFgColor(0x6b7e8c);
+        taskList.getAllStyles().setBgTransparency(255);
+        taskList.getAllStyles().setBgColor(0x37454f);
+        taskList.getStyle().setPadding(20, 20, 20, 20);
+        taskList.getAllStyles().setBorder(Border.createLineBorder(6, 0x37454f));
+    }
+
+    private void search(String text) {
         if(text == null || text.length() == 0) {
             for(Component c : taskList) {
                 c.setHidden(false);
@@ -135,10 +150,8 @@ public class UI extends Form {
             }
         } else {
             for(Component c : taskList) {
-                //Note n = (Note)c.getClientProperty("note");
                 text = text.toLowerCase();
-
-                boolean show = c.getName().toLowerCase().indexOf(text) > -1;
+                boolean show = c.getName().toLowerCase().contains(text);
                 c.setHidden(!show);
                 c.setVisible(show);
             }
@@ -146,32 +159,123 @@ public class UI extends Form {
         getContentPane().animateLayout(200);
     }
 
+    private Dialog NoTasksPopup() {
+        BorderLayout bl = new BorderLayout();
+        Dialog popup = new Dialog(bl);
+
+        TableLayout tl = new TableLayout(2,1);
+        Container instructions = new Container(tl);
+        Label instruction = new Label("No tasks saved. Enter a new task:");
+        instruction.getStyle().setAlignment(CENTER);
+        instructions.add(instruction);
+
+        Label warning = new Label("");
+        warning.getStyle().setAlignment(CENTER);
+        warning.getStyle().setFgColor(0xff0000);
+
+        TextField nameBar = new TextField();
+        nameBar.setHint(setTaskHint());
+
+        GridLayout gl = new GridLayout(1,2);
+        Container buttons = new Container(gl);
+        Button confirmButton = new Button("Confirm");
+        Button cancelButton = new Button("Cancel");
+        buttons.add(cancelButton);
+        buttons.add(confirmButton);
+
+        confirmButton.addActionListener(ev -> {
+            if (nameBar.getText() != "") {
+                if (logic.TaskExists(nameBar.getText())) {
+                    nameBar.setText("");
+                    warning.setText("That task name is already in use.");
+                    instructions.add(warning);
+                    popup.growOrShrink();
+                    //popup.animateLayout(5);
+                } else {
+                    taskList.add(addTask(nameBar.getText()));
+                    taskList.animateLayout(5);
+                    popup.dispose();
+                }
+            }
+            else {
+                taskList.add(addTask(nameBar.getHint()));
+                taskList.animateLayout(5);
+                popup.dispose();
+            }
+        });
+
+        cancelButton.addActionListener(ex -> popup.dispose());
+
+        popup.add(BorderLayout.NORTH, instructions);
+        popup.add(BorderLayout.CENTER, nameBar);
+        popup.add(BorderLayout.SOUTH, buttons);
+
+        return popup;
+    }
+
+    private String setTaskHint() {
+        String setName = "";
+        int taskGuess = 1;
+        while (setName.equals("")) {
+            setName = "Task " + taskGuess;
+            if (logic.TaskExists(setName)) {
+                setName = "";
+                taskGuess += 1;
+            }
+        }
+        return setName;
+    }
+
     private Dialog taskPopup() {
         BorderLayout bl = new BorderLayout();
         Dialog popup = new Dialog(bl);
 
+        TableLayout tl = new TableLayout(2,1);
+        Container instructions = new Container(tl);
         Label instruction = new Label("Enter New Task Name:");
+        instruction.getStyle().setAlignment(CENTER);
+        instructions.add(instruction);
+
+        Label warning = new Label("");
+        warning.getStyle().setAlignment(CENTER);
+        warning.getStyle().setFgColor(0xff0000);
+
         TextField nameBar = new TextField();
-        nameBar.getStyle().setAlignment(CENTER);
+        nameBar.setHint(setTaskHint());
+
+        GridLayout gl = new GridLayout(1,2);
+        Container buttons = new Container(gl);
         Button confirmButton = new Button("Confirm");
         Button cancelButton = new Button("Cancel");
-<<<<<<< Updated upstream
-        nameBar.setHint("Task " + (taskNumber + 1));
-=======
-        nameBar.setHint("Task " + (logic.CountAllTasks() + 1));
->>>>>>> Stashed changes
+        buttons.add(cancelButton);
+        buttons.add(confirmButton);
 
         confirmButton.addActionListener(ev -> {
-            taskList.add(addTask(nameBar.getText()));
-            taskList.animateLayout(5);
-            taskNumber++;
-            popup.dispose();
+            if (nameBar.getText() != "") {
+                if (logic.TaskExists(nameBar.getText())) {
+                    nameBar.setText("");
+                    warning.setText("That task name is already in use.");
+                    instructions.add(warning);
+                    popup.growOrShrink();
+                    //popup.animateLayout(5);
+                } else {
+                    taskList.add(addTask(nameBar.getText()));
+                    taskList.animateLayout(5);
+                    popup.dispose();
+                }
+            }
+            else {
+                taskList.add(addTask(nameBar.getHint()));
+                taskList.animateLayout(5);
+                popup.dispose();
+            }
         });
 
-        popup.add(BorderLayout.NORTH, instruction);
+        cancelButton.addActionListener(ex -> popup.dispose());
+
+        popup.add(BorderLayout.NORTH, instructions);
         popup.add(BorderLayout.CENTER, nameBar);
-        popup.add(BorderLayout.SOUTH, confirmButton);
-        //popup.add(BorderLayout.SOUTH, cancelButton);
+        popup.add(BorderLayout.SOUTH, buttons);
 
         return popup;
     }
@@ -179,30 +283,15 @@ public class UI extends Form {
     public Task addTask(String name) {
         // Initialization for task viewer
         TableLayout tl = new TableLayout(1, 4);
-        String taskName;
-<<<<<<< Updated upstream
-        if (name.equals("")) { taskName = "Task " + (taskNumber + 1); }
-=======
-        if (name.equals("")) { taskName = "Task " + (logic.CountAllTasks() + 1); }
->>>>>>> Stashed changes
-        else { taskName = name; }
 
-        Task upper = newStyledTask(tl, taskName);
+        Task upper = newStyledTask(tl, name);
 
-        // Initialization for size button
+        // Initialization for size, name, and time buttons
         upper.add(tl.createConstraint().widthPercentage(20), upper.createSizeButton());
-
-        Accordion accr = new Accordion();
-        TextArea ta = new TextArea(7, 40);
-        accr.addContent(taskName, ta);
-        ta.setHint("Description");
-        upper.add(tl.createConstraint().widthPercentage(60), accr);
-        ta.getAllStyles().setBgTransparency(0);
-
-        // Init for Time
+        upper.add(tl.createConstraint().widthPercentage(60), upper.createAccordion());
         upper.add(tl.createConstraint().widthPercentage(-2), upper.createTimeButton());
 
-        logic.CreateNewTask(taskName, "S");
+        logic.CreateNewTask(name, "S");
 
         return upper;
     }
@@ -365,6 +454,48 @@ public class UI extends Form {
             }
         }
 
+        public Component createAccordion() {
+            Accordion accr = new Accordion();
+            BorderLayout bl = new BorderLayout();
+            Container body = new Container(bl);
+
+            TextArea ta = new TextArea(7, 40);
+            ta.setHint("Description");
+            ta.getAllStyles().setBgTransparency(100);
+
+            TableLayout tl = new TableLayout(1,2);
+            Container RenameBox = new Container(tl);
+            Button renamer = new Button("Rename");
+            TextField nameSet = new TextField();
+            RenameBox.add(tl.createConstraint().widthPercentage(55), nameSet);
+            RenameBox.add(tl.createConstraint().widthPercentage(-2), renamer);
+
+            body.add(BorderLayout.CENTER, ta);
+            body.add(BorderLayout.SOUTH, RenameBox);
+
+            accr.addContent(taskName, body);
+            accr.setScrollableY(false);
+
+            renamer.addActionListener((e) -> {
+                changeName(nameSet.getText());
+                accr.setHeader(taskName, body);
+            });
+            accr.addOnClickItemListener((e) -> sendDesc(ta));
+
+            return accr;
+        }
+
+        private void changeName(String newName) {
+            if (!logic.TaskExists(newName)) {
+                logic.RenameTask(taskName,newName);
+                taskName = newName;
+            }
+        }
+
+        private void sendDesc(TextArea ta) {
+            logic.SetTaskDescription(taskName, ta.getText());
+        }
+
         private int SizeStringtoInt(String size) {
             if(size.equals("S")) {
                 return 0;
@@ -486,16 +617,6 @@ public class UI extends Form {
                 return String.valueOf(number);
             }
         }
-    }
-
-    int currentSizeNum = 0;
-
-    public void changeSize(Button sizeButton) {
-        currentSizeNum += 1;
-        if (currentSizeNum == 5)
-            currentSizeNum = 0;
-        String[] sizes = {"Size", "S", "M", "L", "XL"};
-        sizeButton.setText(sizes[currentSizeNum]);
     }
 
     Logic logic;
