@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 public class SummaryPage extends Form{
 
-    public SummaryPage(Logic logic) {
+    public SummaryPage(Logic logic, UI parentForm) {
         this.logic = logic;
         setLayout(new BorderLayout());
         setTitle("Statistics");
@@ -44,8 +44,7 @@ public class SummaryPage extends Form{
         });
 
         getToolbar().setBackCommand("",e -> {
-                Form UIForm = new UI();
-                UIForm.show();
+                parentForm.showBack();
         });
 
         add(BorderLayout.NORTH, toolbar);

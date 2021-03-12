@@ -53,9 +53,7 @@ public class UI extends Form {
     private int taskNumber;
 
     public UI() {
-
         logic = new Logic();
-
         setTitle("[APP NAME HERE]");
         setLayout(new BorderLayout());
 
@@ -101,9 +99,23 @@ public class UI extends Form {
         fab2.getAllStyles().setFgColor(0x2e3030);
         fab2.getAllStyles().setBgColor(0x6b7e8c);
         fab2.getAllStyles().setBgTransparency(255);
+<<<<<<< Updated upstream
         fab2.bindFabToContainer(getContentPane());
         fab2.addActionListener(e -> {
             new SummaryPage(logic).show();
+=======
+
+        Container layer = getLayeredPane(getClass(), true);
+        FlowLayout flow = new FlowLayout(RIGHT);
+        flow.setValign(BOTTOM);
+        layer.setLayout(flow);
+        layer.add(fab2 );
+        fab2.getAllStyles().setMarginUnit(Style.UNIT_TYPE_DIPS);
+        fab2.getAllStyles().setMarginBottom(15);
+
+        fab2.addActionListener(e -> {
+            new SummaryPage(logic, this).show();
+>>>>>>> Stashed changes
         });
 
         getToolbar().addSearchCommand(e -> search((String)e.getSource()));
@@ -132,7 +144,7 @@ public class UI extends Form {
             }
         }
         getContentPane().animateLayout(200);
-    }//set all to invisible and
+    }
 
     private Dialog taskPopup() {
         BorderLayout bl = new BorderLayout();
@@ -143,7 +155,11 @@ public class UI extends Form {
         nameBar.getStyle().setAlignment(CENTER);
         Button confirmButton = new Button("Confirm");
         Button cancelButton = new Button("Cancel");
+<<<<<<< Updated upstream
         nameBar.setHint("Task " + (taskNumber + 1));
+=======
+        nameBar.setHint("Task " + (logic.CountAllTasks() + 1));
+>>>>>>> Stashed changes
 
         confirmButton.addActionListener(ev -> {
             taskList.add(addTask(nameBar.getText()));
@@ -164,7 +180,11 @@ public class UI extends Form {
         // Initialization for task viewer
         TableLayout tl = new TableLayout(1, 4);
         String taskName;
+<<<<<<< Updated upstream
         if (name.equals("")) { taskName = "Task " + (taskNumber + 1); }
+=======
+        if (name.equals("")) { taskName = "Task " + (logic.CountAllTasks() + 1); }
+>>>>>>> Stashed changes
         else { taskName = name; }
 
         Task upper = newStyledTask(tl, taskName);
@@ -230,6 +250,7 @@ public class UI extends Form {
                 stroke(borderStroke));
         upper.getAllStyles().setMarginUnit(Style.UNIT_TYPE_DIPS);
         upper.getAllStyles().setMargin(Component.BOTTOM, 1);
+        upper.setName(name);
 
         return upper;
     }
