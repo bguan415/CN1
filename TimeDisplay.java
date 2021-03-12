@@ -12,13 +12,16 @@ public class TimeDisplay extends Button {
         public String timeStamp;
         int lastSecond;
         boolean timerRunning;
+        String verbose;
 
-        public TimeDisplay(String runTime) {
-            seconds = 0;
-            minutes = 0;
-            hours = 0;
-            days = 0;
-            timeStamp = runTime;
+        public TimeDisplay(int timing) {
+            verbose = "D:00 - H:00 - M:00 - S:00";
+            seconds = (timing%3600)%60;
+            minutes = (timing%3600)/60;
+            hours = (timing%3600);
+            days = hours/24;
+            hours = hours-(days*24);
+            setTimeString();
             Calendar curTime = Calendar.getInstance();
             lastSecond = curTime.get(Calendar.SECOND);
             timerRunning =  false;
@@ -27,10 +30,12 @@ public class TimeDisplay extends Button {
 
         public void start(Button time) {
             timerRunning = true;
+            getAllStyles().setFgColor(0x00CD00);
         }
 
         public void stop(Button time) {
             timerRunning = false;
+            getAllStyles().setFgColor(0x752c29);
         }
 
         public boolean animate() {
@@ -42,6 +47,8 @@ public class TimeDisplay extends Button {
 
             return false;
         }
+
+        public String getVerbose() { return verbose; }
 
         private boolean timePassed() {
             Calendar curTime = Calendar.getInstance();
@@ -67,6 +74,7 @@ public class TimeDisplay extends Button {
                 hours = 0;
                 days++;
             }
+            verboseString();
             setTimeString();
         }
 
@@ -83,6 +91,14 @@ public class TimeDisplay extends Button {
             }
         }
 
+        private void verboseString() {
+            String sDays = "D:" + pad(days);
+            String sHours = " - H:" + pad(hours);
+            String sMins = " - M:" + pad(minutes);
+            String sSecs = " - S:" + pad(seconds);
+            verbose = sDays + sHours + sMins + sSecs;
+        }
+
         private String pad(int number) {
             if (number < 10) {
                 return "0" + number;
@@ -90,5 +106,4 @@ public class TimeDisplay extends Button {
                 return String.valueOf(number);
             }
         }
-}
-
+    }
