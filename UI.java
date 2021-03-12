@@ -1,5 +1,4 @@
 package org.ecs160.a2;
-import static com.codename1.ui.CN.*;
 
 import com.codename1.components.FloatingActionButton;
 import com.codename1.ui.*;
@@ -266,10 +265,11 @@ public class UI extends Form {
         if (name.equals("")) { taskName = "Task " + (taskNumber + 1); }
         else { taskName = name; }
 
-        Task upper = newStyledTask(tl, taskName);
+        Task upper = newStyledTask(tl, name);
 
-        // Initialization for size button
+        // Initialization for size, name, and time button
         upper.add(tl.createConstraint().widthPercentage(20), upper.createSizeButton());
+        upper.add(tl.createConstraint().widthPercentage(60), upper.createSizeButton());
 
         Accordion accr = new Accordion();
         TextArea ta = new TextArea(7, 40);
@@ -281,7 +281,7 @@ public class UI extends Form {
         // Init for Time
         upper.add(tl.createConstraint().widthPercentage(-2), upper.createTimeButton());
 
-        logic.CreateNewTask(taskName, "S");
+        logic.CreateNewTask(name, "S");
 
         return upper;
     }
@@ -313,7 +313,7 @@ public class UI extends Form {
     }
 
     private Task newStyledTask(Layout tl, String name) {
-        Task upper = new Task(tl, name);
+        Task upper = new Task(tl, name, logic);
 
         Stroke borderStroke = new Stroke(2, Stroke.CAP_SQUARE, Stroke.JOIN_MITER, 1);
 
@@ -362,7 +362,7 @@ public class UI extends Form {
         String description;
         int runTime;
 
-        public Task(Layout t1, String name) {
+        public Task(Layout t1, String name, Logic logic) {
             super(t1);
             currentSize = 0;
             taskName = name;
@@ -375,7 +375,7 @@ public class UI extends Form {
             this.description = description;
             this.runTime = runTime;
         }
-        
+
         public Button createSizeButton() {
             Button size = new Button("S");
             size.getStyle().setAlignment(CENTER);
@@ -386,6 +386,48 @@ public class UI extends Form {
             size.addActionListener((e) -> changeSize(size));
 
             return size;
+        }
+
+        public Component createAccordion() {
+            Accordion accr = new Accordion();
+            BorderLayout bl = new BorderLayout();
+            Container body = new Container(bl);
+
+            TextArea ta = new TextArea(7, 40);
+            ta.setHint("Description");
+            ta.getAllStyles().setBgTransparency(100);
+
+            TableLayout tl = new TableLayout(1,2);
+            Container RenameBox = new Container(tl);
+            Button renamer = new Button("Rename");
+            TextField nameSet = new TextField();
+            RenameBox.add(tl.createConstraint().widthPercentage(55), nameSet);
+            RenameBox.add(tl.createConstraint().widthPercentage(-2), renamer);
+
+            body.add(BorderLayout.CENTER, ta);
+            body.add(BorderLayout.SOUTH, RenameBox);
+
+            accr.addContent(taskName, body);
+            accr.setScrollableY(false);
+
+            renamer.addActionListener((e) -> {
+                changeName(nameSet.getText());
+                accr.setHeader(taskName, body);
+            });
+            accr.addOnClickItemListener((e) -> sendDesc(ta));
+
+            return accr;
+        }
+
+        private void sendDesc(TextArea ta) {
+            logic.SetTaskDescription(taskName, ta.getText());
+        }
+
+        private void changeName(String newName) {
+            if (!logic.TaskExists(newName)) {
+                logic.RenameTask(taskName,newName);
+                taskName = newName;
+            }
         }
 
         public Button createSizeButton(String sizeStr) {
