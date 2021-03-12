@@ -102,6 +102,15 @@ public class Logic {
             
             while (rs.next()) {
                 int taskTimeSeconds = rs.getInt("runTime");
+
+                if(rs.getString("startTime") != null) {
+                    DateTimeFormatter dtf =
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd,HH:mm:ss");
+                    LocalDateTime startTimeLDT =
+                            sqler.GetStartTimeObject(rs.getString("startTime"), dtf);
+                    taskTimeSeconds += CalculateTimeDifference(startTimeLDT);
+                }
+
                 totalTime += taskTimeSeconds;
                 if(taskTimeSeconds < minTime) {
                     minTime = taskTimeSeconds;
@@ -178,14 +187,19 @@ public class Logic {
         DateTimeFormatter dtf = 
         DateTimeFormatter.ofPattern("yyyy-MM-dd,HH:mm:ss"); 
         LocalDateTime startTimeLDT = sqler.GetStartTimeObject(taskName, dtf);
-        LocalDateTime stopTimeLDT = LocalDateTime.now();
-        
-        Duration duration = Duration.between(stopTimeLDT, startTimeLDT);
-        int timeDifference = (int)Math.abs(duration.toSeconds());
+
+        int timeDifference = CalculateTimeDifference(startTimeLDT);
 
         sqler.IncrementRuntime(taskName, timeDifference);
 
         sqler.DeleteStartTime(taskName);
+    }
+
+    private int CalculateTimeDifference(LocalDateTime startTime) {
+        LocalDateTime stopTimeLDT = LocalDateTime.now();
+
+        Duration duration = Duration.between(stopTimeLDT, startTime);
+        return (int)Math.abs(duration.toSeconds());
     }
 
     public int CountAllTasks() {

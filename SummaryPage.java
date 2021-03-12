@@ -115,9 +115,9 @@ public class SummaryPage extends Form{
 
         stats.add(totalTimeCnt).add(meanTimeCnt).add(minTimeCnt).add(maxTimeCnt).add(newestTasks).add(longestTasks);
         return stats;
-    }//set name and call remove OR set to invisible/visible as needed
+    }
 
-    int currentSizeNum = 0;
+    private int currentSizeNum = 0;
 
     public void changeSize(Button sizeButton) {
         do {
@@ -142,6 +142,6 @@ public class SummaryPage extends Form{
         return sb.toString();
     }
 
-    Logic logic;
-    String[] sizesForSummary = {"", "S", "M", "L", "XL"};
+    private Logic logic;
+    private String[] sizesForSummary = {"", "S", "M", "L", "XL"};
 }

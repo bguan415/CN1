@@ -1,30 +1,14 @@
 package org.ecs160.a2;
 
 import com.codename1.components.*;
-import com.codename1.io.Log;
 import com.codename1.ui.*;
 import com.codename1.ui.layouts.*;
 import com.codename1.ui.plaf.*;
 import com.codename1.ui.table.TableLayout;
 import java.sql.*;
-import java.util.Calendar;
-
-import com.codename1.ui.events.ActionEvent;
-import com.codename1.ui.events.ActionListener;
 import com.codename1.ui.Component;
-import com.codename1.contacts.Contact;
-import com.codename1.ui.Graphics;
 import com.codename1.ui.FontImage;
-import com.codename1.ui.geom.Dimension;
 
-
-
-
-
-
-import com.codename1.io.NetworkEvent;
-
-import javax.management.Descriptor;
 
 // Main UI for the Timer App
 public class UI extends Form {
@@ -101,8 +85,6 @@ public class UI extends Form {
             if (logic.CountAllTasks() > 1) {
                 new SummaryPage(logic, this).show();
             } else {
-                //Dialog popup = NoTasksPopup();
-                //popup.show();
                 ToastBar.Status status = ToastBar.getInstance().createStatus();
                 status.setMessage("Statistics are available for 2 or more tasks. \n" +
                         "Create a new task with the + button.");
@@ -145,20 +127,6 @@ public class UI extends Form {
             }
         }
         getContentPane().animateLayout(200);
-    }
-
-
-    private String setTaskHint() {
-        String setName = "";
-        int taskGuess = 1;
-        while (setName.equals("")) {
-            setName = "Task " + taskGuess;
-            if (logic.TaskExists(setName)) {
-                setName = "";
-                taskGuess += 1;
-            }
-        }
-        return setName;
     }
 
     private Dialog taskPopup() {
@@ -310,7 +278,7 @@ public class UI extends Form {
         String description;
         int runTime;
 
-        public Task(Layout t1, String name, Logic log) {
+        public Task(Layout t1, String name) {
             super(t1);
             currentSize = 0;
             taskName = name;
