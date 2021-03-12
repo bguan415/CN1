@@ -91,7 +91,11 @@ public class UI extends Form {
         fab2.bindFabToContainer(getContentPane());
         fab2.addActionListener(e -> {
             if(sqler.CountAllTasks() > 0) {
-                new SummaryPage(logic).show();
+                try {
+                    new SummaryPage(logic).show();
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
             } else {
                 Dialog popup = NoTasksPopup();
                 popup.show();
@@ -451,8 +455,8 @@ public class UI extends Form {
             logic.ResizeTask(taskName,sizes[currentSize]);
         }
 
-        public UI.TimeDisplay createTimeButton() {
-            UI.TimeDisplay time = new UI.TimeDisplay();
+        public TimeDisplay createTimeButton() {
+            TimeDisplay time = new TimeDisplay();
             time.getStyle().setAlignment(CENTER);
             time.getAllStyles().setFgColor(0x752c29);
             time.getAllStyles().setBgTransparency(0);
@@ -462,8 +466,8 @@ public class UI extends Form {
             return time;
         }
 
-        public UI.TimeDisplay createTimeButton(int runTime) {
-            UI.TimeDisplay time = new UI.TimeDisplay(logic.GenerateTimeStringFromSeconds(runTime));
+        public TimeDisplay createTimeButton(int runTime) {
+            TimeDisplay time = new TimeDisplay(logic.GenerateTimeStringFromSeconds(runTime));
             time.getStyle().setAlignment(CENTER);
             time.getAllStyles().setFgColor(0x752c29);
             time.getAllStyles().setBgTransparency(0);
@@ -473,7 +477,7 @@ public class UI extends Form {
             return time;
         }
 
-        private void toggleRunning(UI.TimeDisplay time) {
+        private void toggleRunning(TimeDisplay time) {
             if (time.timerRunning) {
                 time.stop(time);
                 logic.StopTask(taskName);
