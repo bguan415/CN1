@@ -132,6 +132,44 @@ public class Data {
         return longestTask;
     }
 
+    public ResultSet Get3LongestTasks(String size) {
+        Connection c = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        String sql = "SELECT DISTINCT name " +
+                "FROM tasks " +
+                (size.isEmpty() ? "" : " WHERE size = \"" + size + "\"") +
+                " ORDER BY runTime DESC" +
+                " LIMIT 3";
+        try {
+            c = this.connect();
+            stmt = c.createStatement();
+            rs = stmt.executeQuery(sql);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return rs;
+    }
+
+    public ResultSet Get3NewestTasks(String size) {
+        Connection c = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        String sql = "SELECT DISTINCT name " +
+                "FROM tasks " +
+                (size.isEmpty() ? "" : " WHERE size = \"" + size + "\"") +
+                " ORDER BY _rowid_ DESC" +
+                " LIMIT 3";
+        try {
+            c = this.connect();
+            stmt = c.createStatement();
+            rs = stmt.executeQuery(sql);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return rs;
+    }
+
     public ResultSet GetAllTasks() {
         Connection c = null;
         Statement stmt = null;

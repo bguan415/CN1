@@ -9,6 +9,7 @@ import com.codename1.ui.events.ActionListener;
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.GridLayout;
+import com.codename1.ui.layouts.Layout;
 import com.codename1.ui.plaf.Border;
 import com.codename1.ui.plaf.Style;
 import com.codename1.ui.plaf.UIManager;
@@ -20,7 +21,7 @@ import java.util.HashMap;
 
 public class SummaryPage extends Form{
 
-    public SummaryPage(Logic logic) {
+    public SummaryPage(Logic logic, UI parentForm) {
         this.logic = logic;
         setLayout(new BorderLayout());
         setTitle("Statistics");
@@ -44,8 +45,7 @@ public class SummaryPage extends Form{
         });
 
         getToolbar().setBackCommand("",e -> {
-                Form UIForm = new UI();
-                UIForm.show();
+            parentForm.showBack();
         });
 
         add(BorderLayout.NORTH, toolbar);
@@ -55,8 +55,23 @@ public class SummaryPage extends Form{
 
     private Container titleAndTime(String label, String timeStr) {
         Container container = new Container(new BoxLayout(BoxLayout.Y_AXIS));
+        container.add(new Label("\n\n"));
+        container.add(whiteCenterLabel(label))
+                .add(whiteCenterLabel(timeStr));
+        container.getAllStyles().setFgColor(0x2e3030);
+        container.getAllStyles().setBorder(Border.createLineBorder(6, 0x435059));
+        container.getAllStyles().setBgTransparency(255);
+        container.getAllStyles().setBgColor(0x6b7e8c);
+        return container;
+    }
+
+    private Container top3TasksByValue(String label, ArrayList<String> sortedByValue) {
+        Container container = new Container(new BoxLayout(BoxLayout.Y_AXIS));
+        container.add(new Label("\n"));
         container.add(whiteCenterLabel(label));
-        container.add(whiteCenterLabel(timeStr));
+        for(int i = 0; i < sortedByValue.size(); i++) {
+            container.add(whiteCenterLabel((i+1) +". " +sortedByValue.get(i)));
+        }
         container.getAllStyles().setFgColor(0x2e3030);
         container.getAllStyles().setBorder(Border.createLineBorder(6, 0x435059));
         container.getAllStyles().setBgTransparency(255);
@@ -93,12 +108,10 @@ public class SummaryPage extends Form{
         maxTimeCnt.add(whiteCenterLabel(minMax.get("longestTask")));
 
 
-        Container newestTasks = titleAndTime("Newest Tasks","1. newestTaskName1");
-        newestTasks.add(whiteCenterLabel("2. newestTaskName2"));
-        newestTasks.add(whiteCenterLabel("3. newestTaskName3"));
-        Container longestTasks = titleAndTime("Longest Tasks","1. longestTaskName");
-        longestTasks.add(whiteCenterLabel("2. longestTaskName2"));
-        longestTasks.add(whiteCenterLabel("3. longestTaskName3"));
+        Container newestTasks =
+                top3TasksByValue("Newest Tasks",logic.Get3NewestTasks(sizesForSummary[currentSizeNum]));
+        Container longestTasks =
+                top3TasksByValue("Longest Tasks",logic.Get3LongestTasks(sizesForSummary[currentSizeNum]));
 
         stats.add(totalTimeCnt).add(meanTimeCnt).add(minTimeCnt).add(maxTimeCnt).add(newestTasks).add(longestTasks);
         return stats;
@@ -107,9 +120,12 @@ public class SummaryPage extends Form{
     int currentSizeNum = 0;
 
     public void changeSize(Button sizeButton) {
-        currentSizeNum += 1;
-        if (currentSizeNum == 5)
-            currentSizeNum = 0;
+        do {
+            currentSizeNum += 1;
+            if (currentSizeNum == 5)
+                currentSizeNum = 0;
+        } while(logic.CountSizeClass(sizesForSummary[currentSizeNum]) == 0);
+
         String[] sizes = {"All Tasks", "S Tasks", "M Tasks", "L Tasks", "XL Tasks"};
         sizeButton.setText(sizes[currentSizeNum]);
     }

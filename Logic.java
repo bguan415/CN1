@@ -51,6 +51,37 @@ public class Logic {
         return sqler.GetSearchResultsBySize(size);
     }
 
+    public ArrayList<String> Get3LongestTasks(String size) {
+        ArrayList<String> ThreeLongestTasks = new ArrayList<>();
+        try {
+            ResultSet rs = sqler.Get3LongestTasks(size);
+            while (rs.next()) {
+                String name = rs.getString("name");
+                System.out.println(name);
+                ThreeLongestTasks.add(name);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return ThreeLongestTasks;
+    }
+
+    public ArrayList<String> Get3NewestTasks(String size) {
+        ArrayList<String> ThreeNewestTasks = new ArrayList<>();
+        try {
+            ResultSet rs = sqler.Get3NewestTasks(size);
+            while (rs.next()) {
+                String name = rs.getString("name");
+                ThreeNewestTasks.add(name);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return ThreeNewestTasks;
+    }
+
     public HashMap<String, Integer> SizeSummaryStatistics(String size) {
         if(size.isEmpty()) return FullSummaryStatistics();
 
@@ -162,6 +193,7 @@ public class Logic {
     }
 
     public int CountSizeClass(String size) {
+        if(size.isEmpty()) return sqler.CountAllTasks();
         return sqler.GetSizeClassSize(size);
     }
 
@@ -182,7 +214,9 @@ public class Logic {
         int minutes = (timeInSeconds % 3600)/60;
         int seconds = (timeInSeconds % 3600)%60;
 
-        return String.format("%d:%02d:%02d",hours,minutes,seconds);
+        return hours == 0 ?
+                String.format("%02d:%02d",minutes,seconds)
+                : String.format("%d:%02d:%02d",hours,minutes,seconds);
     }
 
     private Data sqler;
