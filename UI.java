@@ -362,7 +362,7 @@ public class UI extends Form {
         String description;
         int runTime;
 
-        public Task(Layout t1, String name, Logic logic) {
+        public Task(Layout t1, String name, Logic log) {
             super(t1);
             currentSize = 0;
             taskName = name;
