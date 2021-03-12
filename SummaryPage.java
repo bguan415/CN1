@@ -99,13 +99,30 @@ public class SummaryPage extends Form{
         Container maxTimeCnt = titleAndTime("Max Time:", logic.GenerateTimeStringFromSeconds(statMap.get("maxTime")));
         maxTimeCnt.add(whiteCenterLabel(minMax.get("longestTask")));
 
-
-        Container newestTasks = titleAndTime("Newest Tasks","1. " + topThreeTaskNames[0]);
-        newestTasks.add(whiteCenterLabel("2. " + topThreeTaskNames[1]));
-        newestTasks.add(whiteCenterLabel("3. " + topThreeTaskNames[2]));
-        Container longestTasks = titleAndTime("Longest Tasks","1. " + threeLongestTaskNames[0]);
-        longestTasks.add(whiteCenterLabel("2. " + threeLongestTaskNames[1]));
-        longestTasks.add(whiteCenterLabel("3. " + threeLongestTaskNames[2]));
+        Container newestTasks = null;
+        Container longestTasks = null;
+        if (topThreeTaskNames[0] != null) {
+            newestTasks = titleAndTime("Newest Tasks", "1. " + topThreeTaskNames[0]);
+        }
+        if (topThreeTaskNames[1] != null) {
+            assert newestTasks != null;
+            newestTasks.add(whiteCenterLabel("2. " + topThreeTaskNames[1]));
+        }
+        if (topThreeTaskNames[2] != null) {
+            assert newestTasks != null;
+            newestTasks.add(whiteCenterLabel("3. " + topThreeTaskNames[2]));
+        }
+        if (threeLongestTaskNames[0] != null) {
+            longestTasks = titleAndTime("Longest Tasks", "1. " + threeLongestTaskNames[0]);
+        }
+        if (threeLongestTaskNames[1] != null) {
+            assert longestTasks != null;
+            longestTasks.add(whiteCenterLabel("2. " + threeLongestTaskNames[1]));
+        }
+        if (threeLongestTaskNames[2] != null) {
+            assert longestTasks != null;
+            longestTasks.add(whiteCenterLabel("3. " + threeLongestTaskNames[2]));
+        }
 
         stats.add(totalTimeCnt).add(meanTimeCnt).add(minTimeCnt).add(maxTimeCnt).add(newestTasks).add(longestTasks);
         return stats;
