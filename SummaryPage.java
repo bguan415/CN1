@@ -1,11 +1,9 @@
 package org.ecs160.a2;
 
-import com.codename1.components.FloatingActionButton;
-import com.codename1.io.Log;
+
 import com.codename1.ui.*;
 import com.codename1.ui.animations.CommonTransitions;
-import com.codename1.ui.events.ActionEvent;
-import com.codename1.ui.events.ActionListener;
+
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.GridLayout;
@@ -13,12 +11,13 @@ import com.codename1.ui.plaf.Border;
 import com.codename1.ui.plaf.Style;
 import com.codename1.ui.plaf.UIManager;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SummaryPage extends Form{
+
+    Data sqler = new Data();
 
     public SummaryPage(Logic logic) {
         this.logic = logic;
@@ -107,11 +106,33 @@ public class SummaryPage extends Form{
     int currentSizeNum = 0;
 
     public void changeSize(Button sizeButton) {
+        ArrayList<String> sizes = getAvailableSizes();
+
         currentSizeNum += 1;
-        if (currentSizeNum == 5)
+
+        if (currentSizeNum >= sizes.size()){
+            // If end of array, return to head
             currentSizeNum = 0;
-        String[] sizes = {"All Tasks", "S Tasks", "M Tasks", "L Tasks", "XL Tasks"};
-        sizeButton.setText(sizes[currentSizeNum]);
+        }
+        while (sizes.get(currentSizeNum).equals("")){
+            // While going through sizes, skip unavailable sizes
+            currentSizeNum += 1;
+        }
+        sizeButton.setText(sizes.get(currentSizeNum));
+    }
+
+    public ArrayList getAvailableSizes(){
+        ArrayList<String> availableSizes = new ArrayList<String>();
+        availableSizes.add("All Tasks");
+        String[] allSizes = {"S", "M", "L", "XL"};
+        for (String size : allSizes){
+            if (sqler.GetCountBySize(size) > 0 ){
+                availableSizes.add(size + " Tasks");
+            } else {
+                availableSizes.add("");
+            }
+        }
+        return availableSizes;
     }
 
     public String padRightPadSpace(String inputString, int length) {

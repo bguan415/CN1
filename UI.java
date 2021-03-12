@@ -90,7 +90,7 @@ public class UI extends Form {
         fab2.getAllStyles().setBgTransparency(255);
         fab2.bindFabToContainer(getContentPane());
         fab2.addActionListener(e -> {
-            if(sqler.CountAllTasks() > 0) {
+            if(sqler.CountAllTasks() > 1) {
                 new SummaryPage(logic).show();
             } else {
                 Dialog popup = NoTasksPopup();
@@ -197,7 +197,7 @@ public class UI extends Form {
 
         TableLayout tl = new TableLayout(2,1);
         Container instructions = new Container(tl);
-        Label instruction = new Label("No tasks saved. Enter a new task:");
+        Label instruction = new Label("Summary needs 2+ tasks. Enter a new task:");
         instruction.getStyle().setAlignment(CENTER);
         instructions.add(instruction);
 

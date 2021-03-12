@@ -185,7 +185,7 @@ public class Data {
         return rs;
     }
 
-    public int GetSizeClassSize(String searchInput) {
+    public int GetCountBySize(String searchInput) {
         int sizeClassCount = 0;
         String sql = "SELECT Count(*) " +
                 "FROM tasks " +

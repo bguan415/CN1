@@ -162,7 +162,7 @@ public class Logic {
     }
 
     public int CountSizeClass(String size) {
-        return sqler.GetSizeClassSize(size);
+        return sqler.GetCountBySize(size);
     }
 
     public void RenameTask(String oldTaskName, String newTaskName) {
