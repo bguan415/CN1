@@ -47,11 +47,8 @@ public class UI extends Form {
 // Statistics Screen
 // Four buttons to show stats by size? A search bar to find a specific timer? A log? Settings?
 
-    private Form current;
-    private Resources theme;
-    private BorderLayout bl;
-    private Form screen;
-    private Container currentLayout;
+    public Container taskList;
+    private int taskNumber;
 
     public UI() {
 
@@ -62,7 +59,7 @@ public class UI extends Form {
 
         //Container taskEntry = new Container(new BoxLayout(BoxLayout.X_AXIS));
 
-        Container taskList = new Container(new BoxLayout(BoxLayout.Y_AXIS));
+        taskList = new Container(new BoxLayout(BoxLayout.Y_AXIS));
         taskList.getAllStyles().setFgColor(0x6b7e8c);
         taskList.getAllStyles().setBgTransparency(255);
         taskList.getAllStyles().setBgColor(0x37454f);
@@ -96,19 +93,12 @@ public class UI extends Form {
 
 
         // Listener for New Task button
-        newTask.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-                taskList.add(addTask());
-                taskList.animateLayout(5);
-            }
+        newTask.addActionListener(ev -> {
+            Dialog popup = taskPopup();
+            popup.show();
         });
 
-
-        stats.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-                (statsForm()).show();
-            }
-        });
+        stats.addActionListener(ev -> (statsForm()).show());
 
         lower.add(newTask).
                 add(stats);
@@ -120,18 +110,45 @@ public class UI extends Form {
 
     }
 
-    public Task addTask() {
+    private Dialog taskPopup() {
+        BorderLayout bl = new BorderLayout();
+        Dialog popup = new Dialog(bl);
+
+        Label instruction = new Label("Enter the name for your new task:");
+        TextField nameBar = new TextField();
+        nameBar.getStyle().setAlignment(CENTER);
+        Button confirmButton = new Button("Confirm");
+        nameBar.setHint("Task " + (taskNumber + 1));
+
+        confirmButton.addActionListener(ev -> {
+            taskList.add(addTask(nameBar.getText()));
+            taskList.animateLayout(5);
+            taskNumber++;
+            popup.dispose();
+        });
+
+        popup.add(BorderLayout.NORTH, instruction);
+        popup.add(BorderLayout.CENTER, nameBar);
+        popup.add(BorderLayout.SOUTH, confirmButton);
+
+        return popup;
+    }
+
+    public Task addTask(String name) {
         // Initialization for task viewer
         TableLayout tl = new TableLayout(1, 4);
-        Task upper = newStyledTask(tl);
+        String taskName;
+        if (name.equals("")) { taskName = "Task " + (taskNumber + 1); }
+        else { taskName = name; }
+
+        Task upper = newStyledTask(tl, taskName);
 
         // Initialization for size button
         upper.add(tl.createConstraint().widthPercentage(20), upper.createSizeButton());
 
-
         Accordion accr = new Accordion();
         TextArea ta = new TextArea(7, 40);
-        accr.addContent("Task", ta);
+        accr.addContent(taskName, ta);
         ta.setHint("Description");
         upper.add(tl.createConstraint().widthPercentage(60), accr);
         ta.getAllStyles().setBgTransparency(0);
@@ -139,11 +156,13 @@ public class UI extends Form {
         // Init for Time
         upper.add(tl.createConstraint().widthPercentage(-2), upper.createTimeButton());
 
+        logic.CreateNewTask(taskName, "S");
+
         return upper;
     }
 
-    private Task newStyledTask(Layout tl) {
-        Task upper = new Task(tl);
+    private Task newStyledTask(Layout tl, String name) {
+        Task upper = new Task(tl, name);
 
         Stroke borderStroke = new Stroke(2, Stroke.CAP_SQUARE, Stroke.JOIN_MITER, 1);
 
@@ -167,10 +186,10 @@ public class UI extends Form {
         String taskName;
         int currentSize;
 
-        public Task(Layout t1) {
+        public Task(Layout t1, String name) {
             super(t1);
             currentSize = 0;
-            taskName = "Task";
+            taskName = name;
         }
 
 
@@ -209,11 +228,11 @@ public class UI extends Form {
         private void toggleRunning(TimeDisplay time) {
             if (time.timerRunning) {
                 time.stop(time);
-                logic.StartTask(taskName);
+                logic.StopTask(taskName);
             }
             else {
                 time.start(time);
-                logic.StopTask(taskName);
+                logic.StartTask(taskName);
             }
         }
     }
@@ -240,13 +259,11 @@ public class UI extends Form {
         }
 
         public void start(Button time) {
-            System.out.print(time + "\n");
             timerRunning = true;
             registerAnimated(time);
         }
 
         public void stop(Button time) {
-            System.out.print(time + "\n");
             timerRunning = false;
             deregisterAnimated(time);
         }
