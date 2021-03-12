@@ -1,36 +1,16 @@
 package org.ecs160.a2;
-import static com.codename1.ui.CN.*;
 
 import com.codename1.components.FloatingActionButton;
-import com.codename1.io.Log;
 import com.codename1.ui.*;
-import com.codename1.ui.animations.Animation;
-import com.codename1.ui.animations.CommonTransitions;
 import com.codename1.ui.layouts.*;
 import com.codename1.ui.plaf.*;
 import com.codename1.ui.table.TableLayout;
-import com.codename1.ui.util.Resources;
-import com.codename1.ui.util.UITimer;
-import java.io.IOException;
 import java.sql.*;
 import java.util.Calendar;
 
 import com.codename1.components.Accordion;
-import com.codename1.ui.events.ActionEvent;
-import com.codename1.ui.events.ActionListener;
-import com.codename1.components.InfiniteProgress;
 import com.codename1.ui.Component;
-import com.codename1.components.MultiButton;
-import com.codename1.contacts.Contact;
-import com.codename1.ui.Graphics;
 import com.codename1.ui.FontImage;
-
-
-
-
-
-
-import com.codename1.io.NetworkEvent;
 
 // Main UI for the Timer App
 public class UI extends Form {
@@ -102,12 +82,9 @@ public class UI extends Form {
         fab2.getAllStyles().setBgColor(0x6b7e8c);
         fab2.getAllStyles().setBgTransparency(255);
         fab2.bindFabToContainer(getContentPane());
-        fab2.addActionListener(e -> {
-            new SummaryPage(logic).show();
-        });
+        fab2.addActionListener(e -> new SummaryPage(logic).show());
 
         getToolbar().addSearchCommand(e -> search((String)e.getSource()));
-
 
         setScrollable(false);
         add(BorderLayout.NORTH, taskList);
@@ -138,51 +115,81 @@ public class UI extends Form {
         BorderLayout bl = new BorderLayout();
         Dialog popup = new Dialog(bl);
 
+        TableLayout tl = new TableLayout(2,1);
+        Container instructions = new Container(tl);
         Label instruction = new Label("Enter New Task Name:");
+        instruction.getStyle().setAlignment(CENTER);
+        instructions.add(instruction);
+
+        Label warning = new Label("");
+        warning.getStyle().setAlignment(CENTER);
+        warning.getStyle().setFgColor(0xff0000);
+
         TextField nameBar = new TextField();
-        nameBar.getStyle().setAlignment(CENTER);
+        nameBar.setHint(setTaskHint());
+
+        GridLayout gl = new GridLayout(1,2);
+        Container buttons = new Container(gl);
         Button confirmButton = new Button("Confirm");
         Button cancelButton = new Button("Cancel");
-        nameBar.setHint("Task " + (taskNumber + 1));
+        buttons.add(cancelButton);
+        buttons.add(confirmButton);
 
         confirmButton.addActionListener(ev -> {
-            taskList.add(addTask(nameBar.getText()));
-            taskList.animateLayout(5);
-            taskNumber++;
-            popup.dispose();
+            if (nameBar.getText() != "") {
+                if (logic.TaskExists(nameBar.getText())) {
+                    nameBar.setText("");
+                    warning.setText("That task name is already in use.");
+                    instructions.add(warning);
+                    popup.growOrShrink();
+                    //popup.animateLayout(5);
+                } else {
+                    taskList.add(addTask(nameBar.getText()));
+                    taskList.animateLayout(5);
+                    popup.dispose();
+                }
+            }
+            else {
+                taskList.add(addTask(nameBar.getHint()));
+                taskList.animateLayout(5);
+                popup.dispose();
+            }
         });
 
-        popup.add(BorderLayout.NORTH, instruction);
+        cancelButton.addActionListener(ex -> popup.dispose());
+
+        popup.add(BorderLayout.NORTH, instructions);
         popup.add(BorderLayout.CENTER, nameBar);
-        popup.add(BorderLayout.SOUTH, confirmButton);
-        //popup.add(BorderLayout.SOUTH, cancelButton);
+        popup.add(BorderLayout.SOUTH, buttons);
 
         return popup;
+    }
+
+    private String setTaskHint() {
+        String setName = "";
+        int taskGuess = 1;
+        while (setName.equals("")) {
+            setName = "Task " + taskGuess;
+            if (logic.TaskExists(setName)) {
+                setName = "";
+                taskGuess += 1;
+            }
+        }
+        return setName;
     }
 
     public Task addTask(String name) {
         // Initialization for task viewer
         TableLayout tl = new TableLayout(1, 4);
-        String taskName;
-        if (name.equals("")) { taskName = "Task " + (taskNumber + 1); }
-        else { taskName = name; }
 
-        Task upper = newStyledTask(tl, taskName);
+        Task upper = newStyledTask(tl, name);
 
-        // Initialization for size button
+        // Initialization for size, name, and time buttons
         upper.add(tl.createConstraint().widthPercentage(20), upper.createSizeButton());
-
-        Accordion accr = new Accordion();
-        TextArea ta = new TextArea(7, 40);
-        accr.addContent(taskName, ta);
-        ta.setHint("Description");
-        upper.add(tl.createConstraint().widthPercentage(60), accr);
-        ta.getAllStyles().setBgTransparency(0);
-
-        // Init for Time
+        upper.add(tl.createConstraint().widthPercentage(60), upper.createAccordion());
         upper.add(tl.createConstraint().widthPercentage(-2), upper.createTimeButton());
 
-        logic.CreateNewTask(taskName, "S");
+        logic.CreateNewTask(name, "S");
 
         return upper;
     }
@@ -214,7 +221,7 @@ public class UI extends Form {
     }
 
     private Task newStyledTask(Layout tl, String name) {
-        Task upper = new Task(tl, name);
+        Task upper = new Task(tl, name, logic);
 
         Stroke borderStroke = new Stroke(2, Stroke.CAP_SQUARE, Stroke.JOIN_MITER, 1);
 
@@ -263,7 +270,7 @@ public class UI extends Form {
         String description;
         int runTime;
 
-        public Task(Layout t1, String name) {
+        public Task(Layout t1, String name, Logic log) {
             super(t1);
             currentSize = 0;
             taskName = name;
@@ -344,6 +351,48 @@ public class UI extends Form {
             }
         }
 
+        public Component createAccordion() {
+            Accordion accr = new Accordion();
+            BorderLayout bl = new BorderLayout();
+            Container body = new Container(bl);
+
+            TextArea ta = new TextArea(7, 40);
+            ta.setHint("Description");
+            ta.getAllStyles().setBgTransparency(100);
+
+            TableLayout tl = new TableLayout(1,2);
+            Container RenameBox = new Container(tl);
+            Button renamer = new Button("Rename");
+            TextField nameSet = new TextField();
+            RenameBox.add(tl.createConstraint().widthPercentage(55), nameSet);
+            RenameBox.add(tl.createConstraint().widthPercentage(-2), renamer);
+
+            body.add(BorderLayout.CENTER, ta);
+            body.add(BorderLayout.SOUTH, RenameBox);
+
+            accr.addContent(taskName, body);
+            accr.setScrollableY(false);
+
+            renamer.addActionListener((e) -> {
+                changeName(nameSet.getText());
+                accr.setHeader(taskName, body);
+            });
+            accr.addOnClickItemListener((e) -> sendDesc(ta));
+
+            return accr;
+        }
+
+        private void changeName(String newName) {
+            if (!logic.TaskExists(newName)) {
+                logic.RenameTask(taskName,newName);
+                taskName = newName;
+            }
+        }
+
+        private void sendDesc(TextArea ta) {
+            logic.SetTaskDescription(taskName, ta.getText());
+        }
+
         private int SizeStringtoInt(String size) {
             if(size.equals("S")) {
                 return 0;
@@ -362,8 +411,6 @@ public class UI extends Form {
             }
         }
     }
-
-
 
     public class TimeDisplay extends Button {
         int seconds;
@@ -465,16 +512,6 @@ public class UI extends Form {
                 return String.valueOf(number);
             }
         }
-    }
-
-    int currentSizeNum = 0;
-
-    public void changeSize(Button sizeButton) {
-        currentSizeNum += 1;
-        if (currentSizeNum == 5)
-            currentSizeNum = 0;
-        String[] sizes = {"Size", "S", "M", "L", "XL"};
-        sizeButton.setText(sizes[currentSizeNum]);
     }
 
     Logic logic;
