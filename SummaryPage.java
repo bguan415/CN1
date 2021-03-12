@@ -65,6 +65,20 @@ public class SummaryPage extends Form{
         return container;
     }
 
+    private Container top3TasksByValue(String label, ArrayList<String> sortedByValue) {
+        Container container = new Container(new BoxLayout(BoxLayout.Y_AXIS));
+        container.add(new Label("\n"));
+        container.add(whiteCenterLabel(label));
+        for(int i = 0; i < sortedByValue.size(); i++) {
+            container.add(whiteCenterLabel((i+1) +". " +sortedByValue.get(i)));
+        }
+        container.getAllStyles().setFgColor(0x2e3030);
+        container.getAllStyles().setBorder(Border.createLineBorder(6, 0x435059));
+        container.getAllStyles().setBgTransparency(255);
+        container.getAllStyles().setBgColor(0x6b7e8c);
+        return container;
+    }
+
     private Label whiteCenterLabel(String input) {
         Label output = new Label(input);
         output.getStyle().setAlignment(CENTER);
@@ -94,12 +108,10 @@ public class SummaryPage extends Form{
         maxTimeCnt.add(whiteCenterLabel(minMax.get("longestTask")));
 
 
-        Container newestTasks = titleAndTime("Newest Tasks","1. newestTaskName1");
-        newestTasks.add(whiteCenterLabel("2. newestTaskName2"));
-        newestTasks.add(whiteCenterLabel("3. newestTaskName3"));
-        Container longestTasks = titleAndTime("Longest Tasks","1. longestTaskName");
-        longestTasks.add(whiteCenterLabel("2. longestTaskName2"));
-        longestTasks.add(whiteCenterLabel("3. longestTaskName3"));
+        Container newestTasks =
+                top3TasksByValue("Newest Tasks",logic.Get3NewestTasks(sizesForSummary[currentSizeNum]));
+        Container longestTasks =
+                top3TasksByValue("Longest Tasks",logic.Get3LongestTasks(sizesForSummary[currentSizeNum]));
 
         stats.add(totalTimeCnt).add(meanTimeCnt).add(minTimeCnt).add(maxTimeCnt).add(newestTasks).add(longestTasks);
         return stats;

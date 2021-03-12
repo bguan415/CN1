@@ -51,6 +51,37 @@ public class Logic {
         return sqler.GetSearchResultsBySize(size);
     }
 
+    public ArrayList<String> Get3LongestTasks(String size) {
+        ArrayList<String> ThreeLongestTasks = new ArrayList<>();
+        try {
+            ResultSet rs = sqler.Get3LongestTasks(size);
+            while (rs.next()) {
+                String name = rs.getString("name");
+                System.out.println(name);
+                ThreeLongestTasks.add(name);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return ThreeLongestTasks;
+    }
+
+    public ArrayList<String> Get3NewestTasks(String size) {
+        ArrayList<String> ThreeNewestTasks = new ArrayList<>();
+        try {
+            ResultSet rs = sqler.Get3NewestTasks(size);
+            while (rs.next()) {
+                String name = rs.getString("name");
+                ThreeNewestTasks.add(name);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return ThreeNewestTasks;
+    }
+
     public HashMap<String, Integer> SizeSummaryStatistics(String size) {
         if(size.isEmpty()) return FullSummaryStatistics();
 
