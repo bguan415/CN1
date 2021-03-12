@@ -1,36 +1,15 @@
 package org.ecs160.a2;
-import static com.codename1.ui.CN.*;
 
 import com.codename1.components.*;
-import com.codename1.io.Log;
 import com.codename1.ui.*;
-import com.codename1.ui.animations.Animation;
-import com.codename1.ui.animations.CommonTransitions;
 import com.codename1.ui.layouts.*;
 import com.codename1.ui.plaf.*;
 import com.codename1.ui.table.TableLayout;
-import com.codename1.ui.util.Resources;
-import com.codename1.ui.util.UITimer;
-import java.io.IOException;
 import java.sql.*;
 import java.util.Calendar;
 
-import com.codename1.ui.events.ActionEvent;
-import com.codename1.ui.events.ActionListener;
 import com.codename1.ui.Component;
-import com.codename1.contacts.Contact;
-import com.codename1.ui.Graphics;
 import com.codename1.ui.FontImage;
-import com.codename1.ui.geom.Dimension;
-
-
-
-
-
-
-import com.codename1.io.NetworkEvent;
-
-import javax.management.Descriptor;
 
 // Main UI for the Timer App
 public class UI extends Form {
@@ -51,7 +30,7 @@ public class UI extends Form {
         createNewTaskButton();
         createStatPageButton();
 
-        getToolbar().addSearchCommand(e -> search((String)e.getSource()));
+        getToolbar().addSearchCommand(e -> search((String) e.getSource()));
 
 
         setScrollable(false);
@@ -77,7 +56,7 @@ public class UI extends Form {
         }
     }
 
-    private Container createSpacing(){
+    private Container createSpacing() {
         Container blankSpace = new Container(new BoxLayout(BoxLayout.Y_AXIS));
         blankSpace.getAllStyles().setFgColor(0x99a1a1);
         blankSpace.getAllStyles().setBgTransparency(255);
@@ -104,11 +83,7 @@ public class UI extends Form {
         fab.getAllStyles().setMarginUnit(Style.UNIT_TYPE_DIPS);
         fab.getAllStyles().setMarginBottom(15);
         fab.addActionListener(e -> {
-            if (logic.CountAllTasks() > 1) {
-                new SummaryPage(logic, this).show();
-            } else {
-                //Dialog popup = NoTasksPopup();
-                //popup.show();
+            if (!(logic.CountAllTasks() > 1)) {
                 ToastBar.Status status = ToastBar.getInstance().createStatus();
                 status.setMessage("Statistics are available for 2 or more tasks. \n" +
                         "Create a new task with the + button.");
@@ -137,13 +112,13 @@ public class UI extends Form {
     }
 
     private void search(String text) {
-        if(text == null || text.length() == 0) {
-            for(Component c : taskList) {
+        if (text == null || text.length() == 0) {
+            for (Component c : taskList) {
                 c.setHidden(false);
                 c.setVisible(true);
             }
         } else {
-            for(Component c : taskList) {
+            for (Component c : taskList) {
                 text = text.toLowerCase();
                 boolean show = c.getName().toLowerCase().contains(text);
                 c.setHidden(!show);
@@ -154,7 +129,7 @@ public class UI extends Form {
     }
 
 
-    private String setTaskHint() {
+    private String setFreeName() {
         String setName = "";
         int taskGuess = 1;
         while (setName.equals("")) {
@@ -168,11 +143,9 @@ public class UI extends Form {
     }
 
     private Dialog taskPopup() {
-        BorderLayout bl = new BorderLayout();
-        //Dialog popup = new Dialog(bl);
         Dialog popup = new Dialog(new BoxLayout(BoxLayout.Y_AXIS));
 
-        TableLayout tl = new TableLayout(4,1);
+        TableLayout tl = new TableLayout(4, 1);
         Container instructions = new Container(tl);
         Label instruction = new Label("Enter New Task Name:");
         instruction.getStyle().setAlignment(CENTER);
@@ -183,13 +156,13 @@ public class UI extends Form {
         warning.getStyle().setFgColor(0xff0000);
 
         TextField nameBar = new TextField();
-        nameBar.setHint("Task " + (logic.CountAllTasks() + 1));
+        nameBar.setHint(setFreeName());
 
         Label instruction2 = new Label("Enter Optional Description:");
-        TextArea descBar= new TextArea(7, 30);
+        TextArea descBar = new TextArea(7, 30);
         descBar.setHint("Description");
 
-        GridLayout gl = new GridLayout(1,2);
+        GridLayout gl = new GridLayout(1, 2);
         Container buttons = new Container(gl);
         Button confirmButton = new Button("Confirm");
         Button cancelButton = new Button("Cancel");
@@ -203,14 +176,12 @@ public class UI extends Form {
                     warning.setText("That task name is already in use.");
                     instructions.add(warning);
                     popup.growOrShrink();
-                    //popup.animateLayout(5);
                 } else {
-                    taskList.add(addTask(nameBar.getText(),descBar.getText()));
+                    taskList.add(addTask(nameBar.getText(), descBar.getText()));
                     taskList.animateLayout(5);
                     popup.dispose();
                 }
-            }
-            else {
+            } else {
                 taskList.add(addTask(nameBar.getHint(), descBar.getText()));
                 taskList.animateLayout(5);
                 popup.dispose();
@@ -218,7 +189,7 @@ public class UI extends Form {
         });
 
         cancelButton.addActionListener(ex -> {
-            if(!nameBar.getText().isEmpty() || !descBar.getText().isEmpty()) {
+            if (!nameBar.getText().isEmpty() || !descBar.getText().isEmpty()) {
                 discardConfirmation(popup).show();
             } else {
                 popup.dispose();
@@ -226,9 +197,9 @@ public class UI extends Form {
         });
 
         popup.add(instructions)
-        .add(nameBar)
-        .add(instruction2).add(descBar)
-        .add(buttons);
+                .add(nameBar)
+                .add(instruction2).add(descBar)
+                .add(buttons);
 
         return popup;
     }
@@ -244,7 +215,7 @@ public class UI extends Form {
         instruction.getStyle().setAlignment(CENTER);
 
         //Container buttons = new Container(new GridLayout(1,2));
-        Container buttons = new Container(new GridLayout(1,2));
+        Container buttons = new Container(new GridLayout(1, 2));
         Button cancelButton = new Button("No");
         Button confirmButton = new Button("Yes");
 
@@ -258,11 +229,9 @@ public class UI extends Form {
             popup.dispose();
         });
 
-        cancelButton.addActionListener(ex -> {
-            popup.dispose();
-        });
+        cancelButton.addActionListener(ex -> popup.dispose());
 
-        popup.add(BorderLayout.NORTH,instruction).add(BorderLayout.CENTER,buttons);
+        popup.add(BorderLayout.NORTH, instruction).add(BorderLayout.CENTER, buttons);
 
         return popup;
     }
@@ -270,7 +239,7 @@ public class UI extends Form {
     public Task addTask(String name, String description) {
         logic.CreateNewTask(name, "S");
 
-        return DisplayTask(name, "S", description,0);
+        return DisplayTask(name, "S", description, 0);
     }
 
     public Task DisplayTask(String name, String size, String description, int runTime) {
@@ -305,7 +274,7 @@ public class UI extends Form {
                 stroke(borderStroke));
         upper.getAllStyles().setMarginUnit(Style.UNIT_TYPE_DIPS);
         upper.getAllStyles().setMargin(Component.BOTTOM, 1);
-        upper.setName(name+description);
+        upper.setName(name + description);
 
         return upper;
     }
@@ -315,20 +284,23 @@ public class UI extends Form {
         int currentSize;
         String description;
         int runTime;
+        TimeDisplay timer;
 
         public Task(Layout t1, String name) {
             super(t1);
             currentSize = 0;
             taskName = name;
+            description = "";
+            runTime = 0;
         }
 
-        public Task(Layout t1, String name, String size, String description, int runTime) {
+        /*public Task(Layout t1, String name, String size, String description, int runTime) {
             super(t1);
             currentSize = SizeStringtoInt(size);
             taskName = name;
             this.description = description;
             this.runTime = runTime;
-        }
+        }*/
 
         public Button createSizeButton(String sizeStr) {
             Button size = new Button(sizeStr);
@@ -348,30 +320,30 @@ public class UI extends Form {
                 currentSize = 0;
             String[] sizes = {"S", "M", "L", "XL"};
             sizeButton.setText(sizes[currentSize]);
-            logic.ResizeTask(taskName,sizes[currentSize]);
+            logic.ResizeTask(taskName, sizes[currentSize]);
         }
 
-        public TimeDisplay createTimeButton(int runTime) {
-            TimeDisplay time = new TimeDisplay(logic.GenerateTimeStringFromSeconds(runTime));
+        public UI.TimeDisplay createTimeButton(int runTime) {
+            UI.TimeDisplay time = new UI.TimeDisplay(runTime);
             time.getStyle().setAlignment(CENTER);
             time.getAllStyles().setFgColor(0x752c29);
             time.getAllStyles().setBgTransparency(0);
             time.getAllStyles().setBgColor(0x752c29);
 
             time.addActionListener((e) -> toggleRunning(time));
+            timer = time;
             return time;
         }
 
-        private void toggleRunning(TimeDisplay time) {
+        private void toggleRunning(UI.TimeDisplay time) {
             if (time.timerRunning) {
-                deregisterAnimated(time);
                 time.stop(time);
                 logic.StopTask(taskName);
-            }
-            else {
-                registerAnimated(time);
+                deregisterAnimated(time);
+            } else {
                 time.start(time);
                 logic.StartTask(taskName);
+                registerAnimated(time);
             }
         }
 
@@ -380,24 +352,24 @@ public class UI extends Form {
             BorderLayout bl = new BorderLayout();
             Container body = new Container(bl);
 
-            TextArea ta = new TextArea(7, 40);
-            boolean isDefaultDescription = description == null || description.isEmpty();
-            if(isDefaultDescription) {
-                ta.setHint("Description");
-            } else {
-                ta.setText(description);
-                sendDesc(ta);
-            }
+            TextArea ta = new TextArea(6, 40);
+            ta.setText(description == null ? "" : description);
+            ta.setHint("Description");
+            sendDesc(ta);
 
-            ta.getAllStyles().setBgTransparency(100);
+            ta.getAllStyles().setBgTransparency(255);
+            ta.getAllStyles().setFont(Font.createSystemFont(1, 1, 8));
 
-            TableLayout tl = new TableLayout(1,2);
+            TableLayout tl = new TableLayout(1, 2);
             Container RenameBox = new Container(tl);
             Button renamer = new Button("Rename");
             TextField nameSet = new TextField();
             RenameBox.add(tl.createConstraint().widthPercentage(55), nameSet);
             RenameBox.add(tl.createConstraint().widthPercentage(-2), renamer);
 
+            Label vText = new Label("Sample Text");
+
+            body.add(BorderLayout.NORTH, vText);
             body.add(BorderLayout.CENTER, ta);
             body.add(BorderLayout.SOUTH, RenameBox);
 
@@ -409,14 +381,15 @@ public class UI extends Form {
                 accr.setHeader(taskName, body);
                 nameSet.clear();
             });
-            accr.addOnClickItemListener((e) -> sendDesc(ta));
+            accr.addOnClickItemListener((e) -> vText.setText(timer.getVerbose()));
+            ta.addCloseListener((e) -> sendDesc(ta));
 
             return accr;
         }
 
         private void changeName(String newName) {
             if (!logic.TaskExists(newName)) {
-                logic.RenameTask(taskName,newName);
+                logic.RenameTask(taskName, newName);
                 taskName = newName;
             }
         }
@@ -425,6 +398,7 @@ public class UI extends Form {
             logic.SetTaskDescription(taskName, ta.getText());
         }
 
+        /*
         private int SizeStringtoInt(String size) {
             if(size.equals("S")) {
                 return 0;
@@ -442,8 +416,10 @@ public class UI extends Form {
                 return 0;
             }
         }
-    }
 
+         */
+    }
+    
     Logic logic;
 
     public void show() {
