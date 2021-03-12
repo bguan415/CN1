@@ -9,6 +9,7 @@ import com.codename1.ui.events.ActionListener;
 import com.codename1.ui.layouts.BorderLayout;
 import com.codename1.ui.layouts.BoxLayout;
 import com.codename1.ui.layouts.GridLayout;
+import com.codename1.ui.layouts.Layout;
 import com.codename1.ui.plaf.Border;
 import com.codename1.ui.plaf.Style;
 import com.codename1.ui.plaf.UIManager;
@@ -44,7 +45,7 @@ public class SummaryPage extends Form{
         });
 
         getToolbar().setBackCommand("",e -> {
-                parentForm.showBack();
+            parentForm.showBack();
         });
 
         add(BorderLayout.NORTH, toolbar);
@@ -54,8 +55,9 @@ public class SummaryPage extends Form{
 
     private Container titleAndTime(String label, String timeStr) {
         Container container = new Container(new BoxLayout(BoxLayout.Y_AXIS));
-        container.add(whiteCenterLabel(label));
-        container.add(whiteCenterLabel(timeStr));
+        container.add(new Label("\n\n"));
+        container.add(whiteCenterLabel(label))
+                .add(whiteCenterLabel(timeStr));
         container.getAllStyles().setFgColor(0x2e3030);
         container.getAllStyles().setBorder(Border.createLineBorder(6, 0x435059));
         container.getAllStyles().setBgTransparency(255);
@@ -106,9 +108,12 @@ public class SummaryPage extends Form{
     int currentSizeNum = 0;
 
     public void changeSize(Button sizeButton) {
-        currentSizeNum += 1;
-        if (currentSizeNum == 5)
-            currentSizeNum = 0;
+        do {
+            currentSizeNum += 1;
+            if (currentSizeNum == 5)
+                currentSizeNum = 0;
+        } while(logic.CountSizeClass(sizesForSummary[currentSizeNum]) == 0);
+
         String[] sizes = {"All Tasks", "S Tasks", "M Tasks", "L Tasks", "XL Tasks"};
         sizeButton.setText(sizes[currentSizeNum]);
     }

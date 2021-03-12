@@ -162,6 +162,7 @@ public class Logic {
     }
 
     public int CountSizeClass(String size) {
+        if(size.isEmpty()) return sqler.CountAllTasks();
         return sqler.GetSizeClassSize(size);
     }
 
@@ -182,7 +183,9 @@ public class Logic {
         int minutes = (timeInSeconds % 3600)/60;
         int seconds = (timeInSeconds % 3600)%60;
 
-        return String.format("%d:%02d:%02d",hours,minutes,seconds);
+        return hours == 0 ?
+                String.format("%02d:%02d",minutes,seconds)
+                : String.format("%d:%02d:%02d",hours,minutes,seconds);
     }
 
     private Data sqler;
