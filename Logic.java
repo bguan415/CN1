@@ -1,6 +1,5 @@
 package org.ecs160.a2;
 
-import javax.xml.transform.Result;
 import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -157,44 +156,6 @@ public class Logic {
 
         sqler.DeleteStartTime(taskName);
     }
-
-    public String[] threeTopTaskNames() throws SQLException {
-        ResultSet rs = sqler.GetAllTasks();
-        String[] taskNames = new String[3];
-        for (int i = 0; rs.next() && i < 3; i++) {
-            taskNames[i] = rs.getString("name");
-        }
-        return taskNames;
-    }
-
-    public String[] longestThreeTasks() throws SQLException {
-        ResultSet rs = sqler.GetAllTasks();
-        HashMap<String, String> taskNames = new HashMap<>();
-        for (int i = 0; rs.next() && i < 3; i++) {
-            taskNames.put(rs.getString("name"), rs.getString("runTime"));
-        }
-
-        String[] three_task_names = new String[3];
-        for (int i = 0; i < 3; i++) {
-            three_task_names[i] = getMaxName(taskNames);
-            taskNames.remove(three_task_names[i]);
-        }
-        return three_task_names;
-    }
-
-    private String getMaxName(HashMap<String, String> taskNameList) {
-        int curr_time = -1;
-        String curr_name = "";
-        for (String taskName : taskNameList.keySet()) {
-            int tmp_time = Integer.parseInt(taskNameList.get(taskName));
-            if (curr_time < tmp_time) {
-                curr_time = tmp_time;
-                curr_name = taskName;
-            }
-        }
-        return curr_name;
-    }
-
 
     public int CountAllTasks() {
         return sqler.CountAllTasks();

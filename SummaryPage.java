@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 public class SummaryPage extends Form{
 
-    public SummaryPage(Logic logic) throws SQLException {
+    public SummaryPage(Logic logic) {
         this.logic = logic;
         setLayout(new BorderLayout());
         setTitle("Statistics");
@@ -40,11 +40,7 @@ public class SummaryPage extends Form{
         toolbar.getToolbar().setTitleComponent(filterer);
         filterer.addActionListener((e) -> {
             changeSize(filterer);
-            try {
-                replace(getContentPane().getComponentAt(1),BuildStatsCnt(sizesForSummary[currentSizeNum]), CommonTransitions.createFade(5));
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
+            replace(getContentPane().getComponentAt(1),BuildStatsCnt(sizesForSummary[currentSizeNum]), CommonTransitions.createFade(5));
         });
 
         getToolbar().setBackCommand("",e -> {
@@ -76,14 +72,11 @@ public class SummaryPage extends Form{
         return output;
     }
 
-    private Container BuildStatsCnt(String size) throws SQLException {
+    private Container BuildStatsCnt(String size) {
         Container stats = new Container(new GridLayout(3, 2));
 
         HashMap<String, Integer> statMap = logic.SizeSummaryStatistics(sizesForSummary[currentSizeNum]);
         HashMap<String, String> minMax = logic.GetMinandMaxRuntimeTasks(sizesForSummary[currentSizeNum]);
-
-        String[] topThreeTaskNames = logic.threeTopTaskNames();
-        String[] threeLongestTaskNames = logic.longestThreeTasks();
 
         System.out.println(sizesForSummary[currentSizeNum]);
         Container totalTimeCnt = titleAndTime("Total Time:", logic.GenerateTimeStringFromSeconds(statMap.get("totalTime")));
@@ -100,12 +93,12 @@ public class SummaryPage extends Form{
         maxTimeCnt.add(whiteCenterLabel(minMax.get("longestTask")));
 
 
-        Container newestTasks = titleAndTime("Newest Tasks","1. " + topThreeTaskNames[0]);
-        newestTasks.add(whiteCenterLabel("2. " + topThreeTaskNames[1]));
-        newestTasks.add(whiteCenterLabel("3. " + topThreeTaskNames[2]));
-        Container longestTasks = titleAndTime("Longest Tasks","1. " + threeLongestTaskNames[0]);
-        longestTasks.add(whiteCenterLabel("2. " + threeLongestTaskNames[1]));
-        longestTasks.add(whiteCenterLabel("3. " + threeLongestTaskNames[2]));
+        Container newestTasks = titleAndTime("Newest Tasks","1. newestTaskName1");
+        newestTasks.add(whiteCenterLabel("2. newestTaskName2"));
+        newestTasks.add(whiteCenterLabel("3. newestTaskName3"));
+        Container longestTasks = titleAndTime("Longest Tasks","1. longestTaskName");
+        longestTasks.add(whiteCenterLabel("2. longestTaskName2"));
+        longestTasks.add(whiteCenterLabel("3. longestTaskName3"));
 
         stats.add(totalTimeCnt).add(meanTimeCnt).add(minTimeCnt).add(maxTimeCnt).add(newestTasks).add(longestTasks);
         return stats;
