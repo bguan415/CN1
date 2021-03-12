@@ -3,6 +3,7 @@ import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 public class Data {
@@ -43,11 +44,9 @@ public class Data {
 
         }
 
-        catch (Exception e) { 
-
+        catch (Exception e) {
             System.err.println(e.getClass().getName() + ": " + e.getMessage());
             System.exit(0);
-
         }
 
     }
@@ -66,20 +65,71 @@ public class Data {
     }
 
     public ResultSet GetTask(String taskName) {
-        Connection c = null;
-        Statement stmt = null;
-        ResultSet rs = null;
         String sql = "SELECT DISTINCT * " +
             "FROM tasks " +
-            "WHERE name = "+taskName;
-        try {
-            c = this.connect();
-            stmt = c.createStatement();
-            rs = stmt.executeQuery(sql);
+            "WHERE name = ?";
+        ResultSet rs = null;
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, taskName);
+            rs = pstmt.executeQuery();
+            return rs;
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         return rs;
+    }
+
+    public boolean TaskExists(String taskName) {
+        String sql = "SELECT Count(*) " +
+                "FROM tasks " +
+                "WHERE name = ?";
+        ResultSet rs = null;
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, taskName);
+            rs = pstmt.executeQuery();
+            return rs.getInt(1) == 1;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return false;
+    }
+
+    public String GetMinRuntimeTask(String size) {
+        String shortestTask = null;
+        String sql = "SELECT DISTINCT * " +
+                "FROM tasks" +
+                (size.isEmpty() ? "" : " WHERE size = \"" + size + "\"") +
+                " ORDER BY runTime";
+        ResultSet rs = null;
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            rs = pstmt.executeQuery();
+            shortestTask = rs.getString("name");
+            rs.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return shortestTask;
+    }
+
+    public String GetMaxRuntimeTask(String size) {
+        String longestTask = null;
+        String sql = "SELECT DISTINCT * " +
+                "FROM tasks" +
+                (size.isEmpty() ? "" : " WHERE size = \"" + size + "\"") +
+                " ORDER BY runTime DESC";
+        ResultSet rs = null;
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            rs = pstmt.executeQuery();
+            longestTask = rs.getString("name");
+            rs.close();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return longestTask;
     }
 
     public ResultSet GetAllTasks() {
@@ -87,7 +137,8 @@ public class Data {
         Statement stmt = null;
         ResultSet rs = null;
         String sql = "SELECT * " +
-                "FROM tasks ";
+                "FROM tasks " +
+                "ORDER BY _rowid_ DESC ";
         try {
             c = this.connect();
             stmt = c.createStatement();
@@ -103,9 +154,9 @@ public class Data {
         Statement stmt = null;
         ResultSet rs = null;
         String sql = "SELECT * " +
-            "FROM tasks " +
-            "WHERE name LIKE '%"+searchInput+"%'" + 
-            "ORDER BY LENGTH(name)";
+            " FROM tasks " +
+            " WHERE name LIKE '%"+searchInput+"%'" +
+            " ORDER BY LENGTH(name)";
         try {
             c = this.connect();
             stmt = c.createStatement();
@@ -121,10 +172,9 @@ public class Data {
         Statement stmt = null;
         ResultSet rs = null;
         String sql = "SELECT * " +
-            "FROM tasks " +
-            //"WHERE size = "+ searchInput;
-            "WHERE instr(size, '"+searchInput+"') > 0";
-            //ORDER BY name
+                "FROM tasks " +
+                " WHERE size = \""+searchInput+"\" "+
+                " ORDER BY _rowid_ DESC ";
         try {
             c = this.connect();
             stmt = c.createStatement();
@@ -136,22 +186,33 @@ public class Data {
     }
 
     public int GetSizeClassSize(String searchInput) {
-        Connection c = null;
-        Statement stmt = null;
         int sizeClassCount = 0;
         String sql = "SELECT Count(*) " +
-            "FROM tasks " +
-            "WHERE instr(size, '"+searchInput+"') > 0";
-            //ORDER BY 
-        try {
-            c = this.connect();
-            stmt = c.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+                "FROM tasks " +
+                "WHERE size = ?";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, searchInput);
+            ResultSet rs = pstmt.executeQuery();
             sizeClassCount = rs.getInt(1);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         return sizeClassCount;
+    }
+
+    public int CountAllTasks() {
+        int count = 0;
+        String sql = "SELECT Count(*) " +
+                "FROM tasks";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            ResultSet rs = pstmt.executeQuery();
+            count = rs.getInt(1);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return count;
     }
 
     public boolean isGivenTaskRunning(String taskName) {
@@ -215,8 +276,9 @@ public class Data {
     }
 
     public void IncrementRuntime(String taskName, int timeDifference) {
-        String sql = "UPDATE tasks SET runTime = runTime + ? " +
-         "WHERE name = ?";
+        String sql = "UPDATE tasks "+
+                "SET runTime = runTime + ? " +
+                "WHERE name = ?";
         
         try (Connection conn = this.connect(); 
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -243,8 +305,9 @@ public class Data {
     }
 
     public void UpdateTextColumnOfTask(String taskName, String column, String newVal) {
-        String sql = "UPDATE tasks SET "+column+" = ? " +
-         "WHERE name = ?";
+        String sql = "UPDATE tasks " +
+                "SET "+column+" = ? " +
+                "WHERE name = ?";
 
         try (Connection conn = this.connect(); 
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
