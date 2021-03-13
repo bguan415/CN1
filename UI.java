@@ -6,17 +6,21 @@ import com.codename1.ui.layouts.*;
 import com.codename1.ui.plaf.*;
 import com.codename1.ui.table.TableLayout;
 import java.sql.*;
+import java.util.Vector;
+
 import com.codename1.ui.Component;
 import com.codename1.ui.FontImage;
-
 
 // Main UI for the Timer App
 public class UI extends Form {
 
     public Container taskList;
+    public Animator anim;
+    public Logic logic;
 
     public UI() {
 
+        anim = new Animator();
         logic = new Logic();
         setTitle("Time Tracker");
         setLayout(new BorderLayout());
@@ -24,6 +28,7 @@ public class UI extends Form {
         createTaskList();
 
         drawTasks();
+
         Container blankSpace = createSpacing();
         createNewTaskButton();
         createStatPageButton();
@@ -81,9 +86,7 @@ public class UI extends Form {
         fab.getAllStyles().setMarginUnit(Style.UNIT_TYPE_DIPS);
         fab.getAllStyles().setMarginBottom(15);
         fab.addActionListener(e -> {
-            if (logic.CountAllTasks() > 1) {
-                new SummaryPage(logic, this).show();
-            } else {
+            if (!(logic.CountAllTasks() > 1)) {
                 ToastBar.Status status = ToastBar.getInstance().createStatus();
                 status.setMessage("Statistics are available for 2 or more tasks. \n" +
                         "Create a new task with the + button.");
@@ -128,9 +131,20 @@ public class UI extends Form {
         getContentPane().animateLayout(200);
     }
 
+    private String setFreeName() {
+        String setName = "";
+        int taskGuess = 1;
+        while (setName.equals("")) {
+            setName = "Task " + taskGuess;
+            if (logic.TaskExists(setName)) {
+                setName = "";
+                taskGuess += 1;
+            }
+        }
+        return setName;
+    }
+
     private Dialog taskPopup() {
-        BorderLayout bl = new BorderLayout();
-        //Dialog popup = new Dialog(bl);
         Dialog popup = new Dialog(new BoxLayout(BoxLayout.Y_AXIS));
 
         TableLayout tl = new TableLayout(4,1);
@@ -144,7 +158,7 @@ public class UI extends Form {
         warning.getStyle().setFgColor(0xff0000);
 
         TextField nameBar = new TextField();
-        nameBar.setHint("Task " + (logic.CountAllTasks() + 1));
+        nameBar.setHint(setFreeName());
 
         Label instruction2 = new Label("Enter Optional Description:");
         TextArea descBar= new TextArea(7, 30);
@@ -164,16 +178,17 @@ public class UI extends Form {
                     warning.setText("That task name is already in use.");
                     instructions.add(warning);
                     popup.growOrShrink();
-                    //popup.animateLayout(5);
                 } else {
                     taskList.add(addTask(nameBar.getText(),descBar.getText()));
                     taskList.animateLayout(5);
+                    anim.updateTimers();
                     popup.dispose();
                 }
             }
             else {
                 taskList.add(addTask(nameBar.getHint(), descBar.getText()));
                 taskList.animateLayout(5);
+                anim.updateTimers();
                 popup.dispose();
             }
         });
@@ -182,14 +197,15 @@ public class UI extends Form {
             if(!nameBar.getText().isEmpty() || !descBar.getText().isEmpty()) {
                 discardConfirmation(popup).show();
             } else {
+                anim.updateTimers();
                 popup.dispose();
             }
         });
 
         popup.add(instructions)
-        .add(nameBar)
-        .add(instruction2).add(descBar)
-        .add(buttons);
+                .add(nameBar)
+                .add(instruction2).add(descBar)
+                .add(buttons);
 
         return popup;
     }
@@ -269,24 +285,50 @@ public class UI extends Form {
         return upper;
     }
 
+    public class Animator {
+        Vector<TimeDisplay> activeTasks = new Vector<>();
+        int currentActive = 0;
+        Logic logic = new Logic();
+
+        public void addAnimated(TimeDisplay timer) {
+            registerAnimated(timer);
+            activeTasks.add(timer);
+            currentActive += 1;
+        }
+
+        public void removeAnimated(TimeDisplay timer) {
+            deregisterAnimated(timer);
+            activeTasks.remove(timer);
+            currentActive -= 1;
+        }
+
+        public void updateTimers() {
+            if (currentActive > 0) {
+                for (TimeDisplay timer : activeTasks) {
+                    deregisterAnimated(timer);
+                    String taskName = timer.taskName;
+                    int runTime = logic.GetRuntime(taskName) + logic.CalculateTimeDifference(taskName);
+                    System.out.print(runTime);
+                    timer.updateTimeStamp(runTime);
+                    registerAnimated(timer);
+                }
+            }
+        }
+    }
+
     public class Task extends Container {
         String taskName;
         int currentSize;
         String description;
         int runTime;
+        TimeDisplay timer;
 
         public Task(Layout t1, String name) {
             super(t1);
             currentSize = 0;
             taskName = name;
-        }
-
-        public Task(Layout t1, String name, String size, String description, int runTime) {
-            super(t1);
-            currentSize = SizeStringtoInt(size);
-            taskName = name;
-            this.description = description;
-            this.runTime = runTime;
+            description = "";
+            runTime = 0;
         }
 
         public Button createSizeButton(String sizeStr) {
@@ -311,26 +353,27 @@ public class UI extends Form {
         }
 
         public TimeDisplay createTimeButton(int runTime) {
-            TimeDisplay time = new TimeDisplay(logic.GenerateTimeStringFromSeconds(runTime));
+            TimeDisplay time = new TimeDisplay(runTime, taskName);
             time.getStyle().setAlignment(CENTER);
             time.getAllStyles().setFgColor(0x752c29);
             time.getAllStyles().setBgTransparency(0);
             time.getAllStyles().setBgColor(0x752c29);
 
             time.addActionListener((e) -> toggleRunning(time));
+            timer = time;
             return time;
         }
 
         private void toggleRunning(TimeDisplay time) {
             if (time.timerRunning) {
-                deregisterAnimated(time);
-                time.stop(time);
+                time.stop();
                 logic.StopTask(taskName);
+                anim.removeAnimated(time);
             }
             else {
-                registerAnimated(time);
-                time.start(time);
+                time.start();
                 logic.StartTask(taskName);
+                    anim.addAnimated(time);
             }
         }
 
@@ -339,16 +382,13 @@ public class UI extends Form {
             BorderLayout bl = new BorderLayout();
             Container body = new Container(bl);
 
-            TextArea ta = new TextArea(7, 40);
-            boolean isDefaultDescription = description == null || description.isEmpty();
-            if(isDefaultDescription) {
-                ta.setHint("Description");
-            } else {
-                ta.setText(description);
-                sendDesc(ta);
-            }
+            TextArea ta = new TextArea(6, 40);
+            ta.setText(description == null ? "" : description);
+            ta.setHint("Description");
+            sendDesc(ta);
 
-            ta.getAllStyles().setBgTransparency(100);
+            ta.getAllStyles().setBgTransparency(255);
+            ta.getAllStyles().setFont(Font.createSystemFont(1,1,8));
 
             TableLayout tl = new TableLayout(1,2);
             Container RenameBox = new Container(tl);
@@ -357,6 +397,12 @@ public class UI extends Form {
             RenameBox.add(tl.createConstraint().widthPercentage(55), nameSet);
             RenameBox.add(tl.createConstraint().widthPercentage(-2), renamer);
 
+            Label vText = new Label("Sample Text");
+            vText.getStyle().setFgColor(0x000000);
+            vText.getStyle().setFont(Font.createSystemFont(1,1, 8));
+            vText.getStyle().setAlignment(CENTER);
+
+            body.add(BorderLayout.NORTH, vText);
             body.add(BorderLayout.CENTER, ta);
             body.add(BorderLayout.SOUTH, RenameBox);
 
@@ -368,7 +414,8 @@ public class UI extends Form {
                 accr.setHeader(taskName, body);
                 nameSet.clear();
             });
-            accr.addOnClickItemListener((e) -> sendDesc(ta));
+            accr.addOnClickItemListener((e) -> vText.setText(timer.getVerbose()));
+            ta.addCloseListener((e) -> sendDesc(ta));
 
             return accr;
         }
@@ -383,27 +430,7 @@ public class UI extends Form {
         private void sendDesc(TextArea ta) {
             logic.SetTaskDescription(taskName, ta.getText());
         }
-
-        private int SizeStringtoInt(String size) {
-            if(size.equals("S")) {
-                return 0;
-            }
-            if(size.equals("M")) {
-                return 1;
-            }
-            if(size.equals("L")) {
-                return 2;
-            }
-            if(size.equals("XL")) {
-                return 3;
-            }
-            else {
-                return 0;
-            }
-        }
     }
-
-    Logic logic;
 
     public void show() {
         super.show();
