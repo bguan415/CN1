@@ -323,7 +323,7 @@ public class UI extends Form {
         }
 
         public TimeDisplay createTimeButton(int runTime) {
-            TimeDisplay time = new TimeDisplay(logic.GenerateTimeStringFromSeconds(runTime));
+            TimeDisplay time = new TimeDisplay(runTime, taskName);
             time.getStyle().setAlignment(CENTER);
             time.getAllStyles().setFgColor(0x752c29);
             time.getAllStyles().setBgTransparency(0);
