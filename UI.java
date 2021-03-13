@@ -24,7 +24,6 @@ public class UI extends Form {
         createTaskList();
 
         drawTasks();
-
         Container blankSpace = createSpacing();
         createNewTaskButton();
         createStatPageButton();
@@ -220,9 +219,7 @@ public class UI extends Form {
             popup.dispose();
         });
 
-        cancelButton.addActionListener(ex -> {
-            popup.dispose();
-        });
+        cancelButton.addActionListener(ex -> popup.dispose());
 
         popup.add(BorderLayout.NORTH,instruction).add(BorderLayout.CENTER,buttons);
 

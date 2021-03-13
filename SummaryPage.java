@@ -130,18 +130,6 @@ public class SummaryPage extends Form{
         sizeButton.setText(sizes[currentSizeNum]);
     }
 
-    public String padRightPadSpace(String inputString, int length) {
-        if (inputString.length() >= length) {
-            return inputString;
-        }
-        StringBuilder sb = new StringBuilder(inputString);
-        while (sb.length() < length - inputString.length()) {
-            sb.append(' ');
-        }
-
-        return sb.toString();
-    }
-
     private Logic logic;
     private String[] sizesForSummary = {"", "S", "M", "L", "XL"};
 }

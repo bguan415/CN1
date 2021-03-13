@@ -65,15 +65,16 @@ public class Data {
     }
 
     public ResultSet GetTask(String taskName) {
-        String sql = "SELECT DISTINCT * " +
-            "FROM tasks " +
-            "WHERE name = ?";
+        Connection c = null;
+        Statement stmt = null;
         ResultSet rs = null;
-        try (Connection conn = this.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, taskName);
-            rs = pstmt.executeQuery();
-            return rs;
+        String sql = "SELECT DISTINCT * " +
+                "FROM tasks " +
+                "WHERE name = \""+taskName+"\"";
+        try {
+            c = this.connect();
+            stmt = c.createStatement();
+            rs = stmt.executeQuery(sql);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
