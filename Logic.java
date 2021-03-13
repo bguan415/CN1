@@ -180,6 +180,16 @@ public class Logic {
         sqler.DeleteStartTime(taskName);
     }
 
+    public int CalculateTimeDifference(String taskName) {
+        DateTimeFormatter dtf =
+                DateTimeFormatter.ofPattern("yyyy-MM-dd,HH:mm:ss");
+        LocalDateTime startTimeLDT = sqler.GetStartTimeObject(taskName, dtf);
+        LocalDateTime stopTimeLDT = LocalDateTime.now();
+
+        Duration duration = Duration.between(stopTimeLDT, startTimeLDT);
+        return (int)Math.abs(duration.getSeconds());
+    }
+
     public int GetRuntime(String taskName) {
         int runTime = 0;
         try {
@@ -190,16 +200,6 @@ public class Logic {
         }
 
         return runTime;
-    }
-
-    public int CalculateTimeDifference(String taskName) {
-        DateTimeFormatter dtf =
-                DateTimeFormatter.ofPattern("yyyy-MM-dd,HH:mm:ss");
-        LocalDateTime startTimeLDT = sqler.GetStartTimeObject(taskName, dtf);
-        LocalDateTime stopTimeLDT = LocalDateTime.now();
-
-        Duration duration = Duration.between(stopTimeLDT, startTimeLDT);
-        return (int)Math.abs(duration.getSeconds());
     }
 
     public int CountAllTasks() {

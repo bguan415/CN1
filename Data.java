@@ -10,7 +10,7 @@ public class Data {
 
     private Connection connect() {
         // SQLite connection string
-        String url = "jdbc:sqlite:src/org/ecs160/a2/db/test.db";
+        String url = "jdbc:sqlite:src/org/ecs160/a2/db/taskApp.db";
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(url);
