@@ -227,6 +227,18 @@ public class Logic {
                 String.format("%02d:%02d",minutes,seconds)
                 : String.format("%d:%02d:%02d",hours,minutes,seconds);
     }
+    
+    public int GetRuntime(String taskName) {
+        int runTime = 0;
+        try {
+            ResultSet rs = GetTask(taskName);
+            runTime = rs.getInt("runTime");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return runTime;
+    }
 
     private Data sqler;
 }
