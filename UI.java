@@ -14,10 +14,13 @@ import com.codename1.ui.FontImage;
 public class UI extends Form {
 
     public Container taskList;
+    public Animator anim;
+    public Logic logic;
 
     public UI() {
 
         logic = new Logic();
+        anim = new Animator();
         setTitle("Time Tracker");
         setLayout(new BorderLayout());
 
@@ -169,12 +172,14 @@ public class UI extends Form {
                 } else {
                     taskList.add(addTask(nameBar.getText(),descBar.getText()));
                     taskList.animateLayout(5);
+                    anim.updateTimers();
                     popup.dispose();
                 }
             }
             else {
                 taskList.add(addTask(nameBar.getHint(), descBar.getText()));
                 taskList.animateLayout(5);
+                anim.updateTimers();
                 popup.dispose();
             }
         });
@@ -183,6 +188,7 @@ public class UI extends Form {
             if(!nameBar.getText().isEmpty() || !descBar.getText().isEmpty()) {
                 discardConfirmation(popup).show();
             } else {
+                anim.updateTimers();
                 popup.dispose();
             }
         });
@@ -277,11 +283,14 @@ public class UI extends Form {
         int currentSize;
         String description;
         int runTime;
+        TimeDisplay timer;
 
         public Task(Layout t1, String name) {
             super(t1);
             currentSize = 0;
             taskName = name;
+            description = "";
+            runTime = 0;
         }
 
         public Task(Layout t1, String name, String size, String description, int runTime) {
@@ -321,19 +330,20 @@ public class UI extends Form {
             time.getAllStyles().setBgColor(0x752c29);
 
             time.addActionListener((e) -> toggleRunning(time));
+            timer = time;
             return time;
         }
 
         private void toggleRunning(TimeDisplay time) {
             if (time.timerRunning) {
-                deregisterAnimated(time);
-                time.stop(time);
+                time.stop();
                 logic.StopTask(taskName);
+                anim.removeAnimated(time);
             }
             else {
-                registerAnimated(time);
-                time.start(time);
+                time.start();
                 logic.StartTask(taskName);
+                anim.addAnimated(time);
             }
         }
 
@@ -342,16 +352,13 @@ public class UI extends Form {
             BorderLayout bl = new BorderLayout();
             Container body = new Container(bl);
 
-            TextArea ta = new TextArea(7, 40);
-            boolean isDefaultDescription = description == null || description.isEmpty();
-            if(isDefaultDescription) {
-                ta.setHint("Description");
-            } else {
-                ta.setText(description);
-                sendDesc(ta);
-            }
+            TextArea ta = new TextArea(6, 40);
+            ta.setText(description == null ? "" : description);
+            ta.setHint("Description");
+            sendDesc(ta);
 
-            ta.getAllStyles().setBgTransparency(100);
+            ta.getAllStyles().setBgTransparency(255);
+            ta.getAllStyles().setFont(Font.createSystemFont(1,1,8));
 
             TableLayout tl = new TableLayout(1,2);
             Container RenameBox = new Container(tl);
@@ -360,6 +367,12 @@ public class UI extends Form {
             RenameBox.add(tl.createConstraint().widthPercentage(55), nameSet);
             RenameBox.add(tl.createConstraint().widthPercentage(-2), renamer);
 
+            Label vText = new Label("Sample Text");
+            vText.getStyle().setFgColor(0x000000);
+            vText.getStyle().setFont(Font.createSystemFont(1,1, 8));
+            vText.getStyle().setAlignment(CENTER);
+
+            body.add(BorderLayout.NORTH, vText);
             body.add(BorderLayout.CENTER, ta);
             body.add(BorderLayout.SOUTH, RenameBox);
 
@@ -371,7 +384,8 @@ public class UI extends Form {
                 accr.setHeader(taskName, body);
                 nameSet.clear();
             });
-            accr.addOnClickItemListener((e) -> sendDesc(ta));
+            accr.addOnClickItemListener((e) -> vText.setText(timer.getVerbose()));
+            ta.addCloseListener((e) -> sendDesc(ta));
 
             return accr;
         }
@@ -405,8 +419,6 @@ public class UI extends Form {
             }
         }
     }
-
-    Logic logic;
 
     public void show() {
         super.show();
