@@ -180,7 +180,19 @@ public class Logic {
         sqler.DeleteStartTime(taskName);
     }
 
-    private int CalculateTimeDifference(String taskName) {
+    public int GetRuntime(String taskName) {
+        int runTime = 0;
+        try {
+            ResultSet rs = GetTask(taskName);
+            runTime = rs.getInt("runTime");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return runTime;
+    }
+
+    public int CalculateTimeDifference(String taskName) {
         DateTimeFormatter dtf =
                 DateTimeFormatter.ofPattern("yyyy-MM-dd,HH:mm:ss");
         LocalDateTime startTimeLDT = sqler.GetStartTimeObject(taskName, dtf);
